@@ -1,6 +1,6 @@
 package com.ariescat.hotswap.javasource.spring;
 
-import com.ariescat.hotswap.javasource.JavaSourceClassLoader;
+import com.ariescat.hotswap.javasource.JavaCodeClassLoader;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
@@ -14,13 +14,13 @@ import java.io.IOException;
  * @author Ariescat
  * @version 2020/1/10 12:26
  */
-public class JavaSourceFactory implements ScriptFactory, BeanClassLoaderAware {
+public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
     private final String scriptSourceLocator;
 
-    private JavaSourceCustomizer customize;
+    private JavaCodeCustomizer customize;
 
-    private JavaSourceClassLoader classLoader;
+    private JavaCodeClassLoader classLoader;
 
     private Class<?> scriptClass;
 
@@ -32,24 +32,24 @@ public class JavaSourceFactory implements ScriptFactory, BeanClassLoaderAware {
 
     private boolean wasModifiedForTypeCheck = false;
 
-    public JavaSourceFactory(String scriptSourceLocator) {
+    public JavaCodeFactory(String scriptSourceLocator) {
         this.scriptSourceLocator = scriptSourceLocator;
     }
 
-    public JavaSourceFactory(String scriptSourceLocator, JavaSourceCustomizer customize) {
+    public JavaCodeFactory(String scriptSourceLocator, JavaCodeCustomizer customize) {
         this.scriptSourceLocator = scriptSourceLocator;
         this.customize = customize;
     }
 
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
-        this.classLoader = new JavaSourceClassLoader(classLoader);
+        this.classLoader = new JavaCodeClassLoader(classLoader);
     }
 
-    private JavaSourceClassLoader getClassLoader() {
+    private JavaCodeClassLoader getClassLoader() {
         synchronized (this.scriptClassMonitor) {
             if (this.classLoader == null) {
-                this.classLoader = new JavaSourceClassLoader(ClassUtils.getDefaultClassLoader());
+                this.classLoader = new JavaCodeClassLoader(ClassUtils.getDefaultClassLoader());
             }
             return this.classLoader;
         }

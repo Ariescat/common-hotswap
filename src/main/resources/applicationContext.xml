@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean class="org.springframework.scripting.support.ScriptFactoryPostProcessor"/>
-    <bean class="com.ariescat.hotswap.javasource.spring.JavaSourceRegister">
+    <bean class="com.ariescat.hotswap.javasource.spring.JavaCodeScriptRegister">
         <property name="directory" value="script"/>
         <property name="refreshCheckDelay" value="10000"/>
     </bean>

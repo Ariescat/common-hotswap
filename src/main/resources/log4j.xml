@@ -7,14 +7,14 @@
         <!-- 设置日志输出的样式 -->
         <layout class="org.apache.log4j.PatternLayout">
             <!-- 设置日志输出的格式 -->
-            <param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss:SSS}] [%-5p] [method:%l]%n%m%n%n"/>
+            <param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss:SSS}] [%-5p] [method:%l] %m%n"/>
         </layout>
         <!--过滤器设置输出的级别-->
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <!-- 设置日志输出的最小级别 -->
-            <param name="levelMin" value="WARN"/>
+            <param name="levelMin" value="DEBUG"/>
             <!-- 设置日志输出的最大级别 -->
-            <param name="levelMax" value="ERROR"/>
+            <param name="levelMax" value="FATAL"/>
             <!-- 设置日志输出的xxx，默认是false -->
             <param name="AcceptOnMatch" value="true"/>
         </filter>
@@ -22,7 +22,7 @@
 
     <!-- 根logger的设置-->
     <root>
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="ConsoleAppender"/>
     </root>
 

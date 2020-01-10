@@ -1,5 +1,6 @@
 package com.ariescat.hotswap.javasource;
 
+import com.ariescat.hotswap.javasource.definition.ICodeDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,41 +108,43 @@ public class CompilationUnit {
         javaFileManager = new JavaFileManagerImpl(manager, classLoader);
     }
 
-    public synchronized Class<?> doCompile(String name, String sourceCode, OutputStream os) throws Exception {
+    public Class<?> doCompile(ICodeDefinition codeDefinition) throws Exception {
+        return doCompile(codeDefinition, null);
+    }
+
+    public synchronized Class<?> doCompile(ICodeDefinition codeDefinition, OutputStream os) throws Exception {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
+
+        String className = codeDefinition.getClassName();
         if (log.isDebugEnabled()) {
-            log.debug("Begin to compile source code: class is '{}'", name);
+            log.debug("Begin to compile source code: class is '{}'", className);
         }
 
-        int i = name.lastIndexOf('.');
-        String packageName = i < 0 ? "" : name.substring(0, i);
-        String className = i < 0 ? name : name.substring(i + 1);
-
         //构造源代码对象
-        JavaFileObjectImpl javaFileObject = new JavaFileObjectImpl(className, sourceCode);
-        javaFileManager.putFileForInput(StandardLocation.SOURCE_PATH, packageName, className + Kind.SOURCE.extension, javaFileObject);
+        JavaFileObject javaFileObject = codeDefinition.createJavaFileObject();
+        javaFileManager.putFileForInput(StandardLocation.SOURCE_PATH, codeDefinition.getPackageName(), className + Kind.SOURCE.extension, javaFileObject);
 
         DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
         Boolean result = compiler.getTask(null, javaFileManager, diagnosticCollector, options, null, Collections.singletonList(javaFileObject))
                 .call();
         if (result == null || !result) {
             // 编译信息(错误 警告)
-            throw new IllegalStateException("Compilation failed. class: " + name + ", diagnostics: " + diagnosticCollector.getDiagnostics());
+            throw new IllegalStateException("Compilation failed. class: " + className + ", diagnostics: " + diagnosticCollector.getDiagnostics());
         }
 
         stopWatch.stop();
         if (log.isDebugEnabled()) {
-            log.debug("compile source code done: class is '{}', cost '{}' mills", name, stopWatch.getTotalTimeMillis());
+            log.debug("compile source code done: class is '{}', cost '{}' mills", className, stopWatch.getTotalTimeMillis());
         }
 
-        Class<?> retClass = classLoader.loadClass(name);
+        Class<?> retClass = classLoader.loadClass(className);
         if (log.isDebugEnabled()) {
-            log.debug("loading class done  '{}'", name);
+            log.debug("loading class done  '{}'", className);
         }
 
         if (os != null) {
-            byte[] bytes = classLoader.loadClassBytes(name);
+            byte[] bytes = classLoader.loadClassBytes(className);
             if (bytes != null) {
                 os.write(bytes);
                 os.flush();
@@ -193,7 +196,7 @@ public class CompilationUnit {
             return null;
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see java.lang.ClassLoader#findClass(java.lang.String)
@@ -222,7 +225,7 @@ public class CompilationUnit {
             classes.put(qualifiedClassName, javaFile);
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see java.lang.ClassLoader#loadClass(java.lang.String, boolean)
@@ -233,7 +236,7 @@ public class CompilationUnit {
             return super.loadClass(name, resolve);
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see java.lang.ClassLoader#getResourceAsStream(java.lang.String)
@@ -255,7 +258,7 @@ public class CompilationUnit {
     /**
      * 自定义一个编译之后的字节码对象
      */
-    private static final class JavaFileObjectImpl extends SimpleJavaFileObject {
+    public static final class JavaFileObjectImpl extends SimpleJavaFileObject {
 
         private ByteArrayOutputStream bytecode;
         private final CharSequence source;
@@ -325,7 +328,7 @@ public class CompilationUnit {
             this.classLoader = classLoader;
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see javax.tools.ForwardingJavaFileManager#getFileForInput(javax.tools.JavaFileManager.Location,
@@ -366,7 +369,7 @@ public class CompilationUnit {
             return URI.create(location.getName() + '/' + packageName + '/' + relativeName);
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see javax.tools.ForwardingJavaFileManager#getJavaFileForOutput(javax.tools.JavaFileManager.Location,
@@ -380,7 +383,7 @@ public class CompilationUnit {
             return file;
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see javax.tools.ForwardingJavaFileManager#getClassLoader(javax.tools.JavaFileManager.Location)
@@ -390,7 +393,7 @@ public class CompilationUnit {
             return classLoader;
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see javax.tools.ForwardingJavaFileManager#inferBinaryName(javax.tools.JavaFileManager.Location,
@@ -404,7 +407,7 @@ public class CompilationUnit {
             return super.inferBinaryName(loc, file);
         }
 
-        /*
+        /**
          * (non-Javadoc)
          *
          * @see javax.tools.ForwardingJavaFileManager#list(javax.tools.JavaFileManager.Location, java.lang.String,

@@ -1,6 +1,7 @@
 package com.ariescat.hotswap;
 
 import com.ariescat.hotswap.javasource.CompilationUnit;
+import com.ariescat.hotswap.javasource.definition.JavaCodeStringDefinition;
 import sun.misc.IOUtils;
 
 import java.io.FileInputStream;
@@ -22,7 +23,7 @@ public class TestCompiler {
                     fileInputStream.close();
 
                     CompilationUnit unit = new CompilationUnit(TestCompiler.class.getClassLoader());
-                    Class<?> clazz = unit.doCompile("com.ariescat.hotswap.Person", new String(bytes), null);
+                    Class<?> clazz = unit.doCompile(new JavaCodeStringDefinition("com.ariescat.hotswap.Person", new String(bytes)));
 
                     IHello hello = (IHello) clazz.newInstance();
                     hello.sayHello();

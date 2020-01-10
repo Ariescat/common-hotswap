@@ -9,14 +9,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Ariescat
  * @version 2020/1/10 14:42
  */
-public class JavaSourceClassLoader extends URLClassLoader {
+public class JavaCodeClassLoader extends URLClassLoader {
 
     /**
      * this cache contains the loaded classes or PARSING, if the class is currently parsed
      */
     protected final Map<String, Class> classCache = new ConcurrentHashMap<>();
 
-    public JavaSourceClassLoader(ClassLoader parent) {
+    public JavaCodeClassLoader(ClassLoader parent) {
         super(new URL[0], parent);
     }
 

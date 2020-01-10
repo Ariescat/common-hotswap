@@ -19,9 +19,9 @@ import static org.springframework.scripting.support.ScriptFactoryPostProcessor.R
  * @author Ariescat
  * @version 2020/1/10 13:23
  */
-public class JavaSourceRegister implements ApplicationContextAware {
+public class JavaCodeScriptRegister implements ApplicationContextAware {
 
-    private final static Logger log = LoggerFactory.getLogger(JavaSourceRegister.class);
+    private final static Logger log = LoggerFactory.getLogger(JavaCodeScriptRegister.class);
 
     /**
      * 脚本目录
@@ -49,7 +49,7 @@ public class JavaSourceRegister implements ApplicationContextAware {
         Collection<File> files = FileUtils.listFiles(scriptDir, new String[]{"java"}, true);
         files.forEach(file -> {
             GenericBeanDefinition bd = new GenericBeanDefinition();
-            bd.setBeanClass(JavaSourceFactory.class);
+            bd.setBeanClass(JavaCodeFactory.class);
             // 刷新时间
             bd.setAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE, refreshCheckDelay);
             String path = file.getPath();
