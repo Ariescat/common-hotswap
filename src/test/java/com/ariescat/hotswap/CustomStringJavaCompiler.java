@@ -1,14 +1,16 @@
 package com.ariescat.hotswap;
 
-import sun.misc.IOUtils;
-
 import javax.tools.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Create by andy on 2018-12-06 21:25
@@ -30,29 +32,7 @@ public class CustomStringJavaCompiler {
     //运行耗时(单位ms)
     private long runTakeTime;
 
-
-    public CustomStringJavaCompiler(String sourceCode) {
-        this.sourceCode = sourceCode;
-        this.fullClassName = getFullClassName(sourceCode);
-    }
-
     public static void main(String[] args) {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(500);
-
-                    test();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        ).start();
-
-    }
-
-    private static void test() {
         String code = "public class HelloWorld {\n" +
                 "    public static void main(String []args) {\n" +
                 "\t\tfor(int i=0; i < 1; i++){\n" +
@@ -77,6 +57,12 @@ public class CustomStringJavaCompiler {
             System.out.println("编译失败");
             System.out.println(compiler.getCompilerMessage());
         }
+
+    }
+
+    public CustomStringJavaCompiler(String sourceCode) {
+        this.sourceCode = sourceCode;
+        this.fullClassName = getFullClassName(sourceCode);
     }
 
     /**
@@ -90,10 +76,7 @@ public class CustomStringJavaCompiler {
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticsCollector, null, null);
         JavaFileManager javaFileManager = new StringJavaFileManage(standardFileManager);
         //构造源代码对象
-//        JavaFileObject javaFileObject = new StringJavaFileObject(fullClassName, sourceCode);
-//        TODO 记得要把这个路径排除出编译路径
-        JavaScoreFileObject javaFileObject = new JavaScoreFileObject(fullClassName, "C:\\LQZ_Projects\\Idea_Projects\\ariescat-hotswap-core\\src\\test\\script\\com\\ariescat\\hotswap\\Person.java");
-
+        JavaFileObject javaFileObject = new StringJavaFileObject(fullClassName, sourceCode);
         //获取一个编译任务
         JavaCompiler.CompilationTask task = compiler.getTask(null, javaFileManager, diagnosticsCollector, null, null, Arrays.asList(javaFileObject));
         //设置编译耗时
@@ -104,24 +87,21 @@ public class CustomStringJavaCompiler {
     /**
      * 执行main方法，重定向System.out.print
      */
-    public void runMainMethod() throws Exception {
+    public void runMainMethod() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, UnsupportedEncodingException {
         PrintStream out = System.out;
         try {
             long startTime = System.currentTimeMillis();
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             PrintStream printStream = new PrintStream(outputStream);
             //PrintStream PrintStream = new PrintStream("/Users/andy/Desktop/tem.sql"); //输出到文件
-            System.setOut(printStream);
+            System.setOut(printStream); //测试kill线程暂时屏蔽
 
             StringClassLoader scl = new StringClassLoader();
             Class<?> aClass = scl.findClass(fullClassName);
-//            Method main = aClass.getMethod("sayHello", String[].class);
-//            Object[] pars = new Object[]{1};
-//            pars[0] = new String[]{};
-//            main.invoke(null, pars); //调用main方法
-
-            IHello hello = (IHello) aClass.newInstance();
-            hello.sayHello();
+            Method main = aClass.getMethod("main", String[].class);
+            Object[] pars = new Object[]{1};
+            pars[0] = new String[]{};
+            main.invoke(null, pars); //调用main方法
             //设置运行耗时
             runTakeTime = System.currentTimeMillis() - startTime;
             //设置打印输出的内容
@@ -168,20 +148,19 @@ public class CustomStringJavaCompiler {
      * @return 类的全名称
      */
     public static String getFullClassName(String sourceCode) {
-//        String className = "";
-//        Pattern pattern = Pattern.compile("package\\s+\\S+\\s*;");
-//        Matcher matcher = pattern.matcher(sourceCode);
-//        if (matcher.find()) {
-//            className = matcher.group().replaceFirst("package", "").replace(";", "").trim() + ".";
-//        }
-//
-//        pattern = Pattern.compile("class\\s+\\S+\\s+\\{");
-//        matcher = pattern.matcher(sourceCode);
-//        if (matcher.find()) {
-//            className += matcher.group().replaceFirst("class", "").replace("{", "").trim();
-//        }
-//        return className;
-        return "com.ariescat.hotswap.Person";
+        String className = "";
+        Pattern pattern = Pattern.compile("package\\s+\\S+\\s*;");
+        Matcher matcher = pattern.matcher(sourceCode);
+        if (matcher.find()) {
+            className = matcher.group().replaceFirst("package", "").replace(";", "").trim() + ".";
+        }
+
+        pattern = Pattern.compile("class\\s+\\S+\\s+\\{");
+        matcher = pattern.matcher(sourceCode);
+        if (matcher.find()) {
+            className += matcher.group().replaceFirst("class", "").replace("{", "").trim();
+        }
+        return className;
     }
 
     /**
@@ -203,25 +182,6 @@ public class CustomStringJavaCompiler {
             return contents;
         }
 
-    }
-
-    private class JavaScoreFileObject extends SimpleJavaFileObject {
-
-        private String path;
-
-        public JavaScoreFileObject(String className, String path) {
-            super(URI.create("string:///" + className.replaceAll("\\.", "/") + Kind.SOURCE.extension), Kind.SOURCE);
-            this.path = path;
-        }
-
-        //字符串源码会调用该方法
-        @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-            FileInputStream fileInputStream = new FileInputStream(path);
-            byte[] bytes = IOUtils.readFully(fileInputStream, -1, false);
-            fileInputStream.close();
-            return new String(bytes);
-        }
     }
 
     /**
