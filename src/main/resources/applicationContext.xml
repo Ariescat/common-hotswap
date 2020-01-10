@@ -6,6 +6,6 @@
     <bean class="org.springframework.scripting.support.ScriptFactoryPostProcessor"/>
     <bean class="com.ariescat.hotswap.javasource.spring.JavaCodeScriptRegister">
         <property name="directory" value="script"/>
-        <property name="refreshCheckDelay" value="10000"/>
+        <property name="refreshCheckDelay" value="3000"/>
     </bean>
 </beans>

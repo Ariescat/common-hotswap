@@ -11,7 +11,19 @@ public class TestSpringInject {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
-        IHello bean = context.getBean(IHello.class);
-        bean.sayHello();
+        new Thread(() -> {
+            while (true) {
+                try {
+                    IHello bean = context.getBean(IHello.class);
+                    bean.sayHello();
+                    System.out.println("----------------------");
+
+                    Thread.sleep(2000);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        ).start();
     }
 }

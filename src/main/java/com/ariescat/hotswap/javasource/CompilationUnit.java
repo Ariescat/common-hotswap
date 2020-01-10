@@ -119,7 +119,7 @@ public class CompilationUnit {
 
         String className = codeDefinition.getClassName();
         if (log.isDebugEnabled()) {
-            log.debug("Begin to compile source code: class is '{}'", className);
+            log.debug("Begin to compile source code [{}]", className);
         }
 
         //构造源代码对象
@@ -136,12 +136,12 @@ public class CompilationUnit {
 
         stopWatch.stop();
         if (log.isDebugEnabled()) {
-            log.debug("compile source code done: class is '{}', cost '{}' mills", className, stopWatch.getTotalTimeMillis());
+            log.debug("compile source code done. class [{}] cost {} mills", className, stopWatch.getTotalTimeMillis());
         }
 
         Class<?> retClass = classLoader.loadClass(className);
         if (log.isDebugEnabled()) {
-            log.debug("loading class done  '{}'", className);
+            log.debug("loading class done [{}]", className);
         }
 
         if (os != null) {
