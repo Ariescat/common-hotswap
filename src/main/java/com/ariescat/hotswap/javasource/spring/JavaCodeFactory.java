@@ -91,6 +91,8 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
+                    // TODO 1.这里如果不每次new一个新的ClassLoader的话，就不会重新加载，但是如果每次都new，那ClassLoader会不会很多？
+                    // TODO 2.scriptSource.suggestedClassName() 获取的不是全限定类名，就无法加载
                     this.scriptClass = getClassLoader().parseClass(
                             scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
 
@@ -122,8 +124,6 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
                     this.wasModifiedForTypeCheck = true;
-                    // TODO 1.这里如果不每次new一个新的ClassLoader的话，就不会重新加载，但是如果每次都new，那ClassLoader会不会很多？
-                    // TODO 2.scriptSource.suggestedClassName() 获取的不是全限定类名，就无法加载
                     this.scriptClass = getClassLoader().parseClass(
                             scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
 
