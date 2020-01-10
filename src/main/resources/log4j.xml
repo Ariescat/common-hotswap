@@ -7,7 +7,7 @@
         <!-- 设置日志输出的样式 -->
         <layout class="org.apache.log4j.PatternLayout">
             <!-- 设置日志输出的格式 -->
-            <param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss:SSS}] [%-5p] [method:%l] %m%n"/>
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss:SSS} %-5p %l - %m%n"/>
         </layout>
         <!--过滤器设置输出的级别-->
         <filter class="org.apache.log4j.varia.LevelRangeFilter">

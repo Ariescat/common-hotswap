@@ -40,6 +40,7 @@ public class JavaCodeScriptRegister implements ApplicationContextAware {
 
         URL url = Thread.currentThread().getContextClassLoader().getResource(directory);
         if (url == null) {
+            log.error("directory is null, script register exit !");
             return;
         }
         File scriptDir = new File(url.getFile());

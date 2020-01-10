@@ -1,6 +1,6 @@
 package com.ariescat.hotswap.javasource.definition;
 
-import com.ariescat.hotswap.javasource.CompilationUnit;
+import com.ariescat.hotswap.javasource.JavaFileObjectImpl;
 
 import javax.tools.JavaFileObject;
 
@@ -24,6 +24,6 @@ public class JavaCodeStringDefinition implements ICodeDefinition {
 
     @Override
     public JavaFileObject createJavaFileObject() {
-        return new CompilationUnit.JavaFileObjectImpl(className, sourceCode);
+        return new JavaFileObjectImpl(className, sourceCode);
     }
 }

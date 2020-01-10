@@ -1,6 +1,6 @@
 package com.ariescat.hotswap.javasource.spring;
 
-import com.ariescat.hotswap.javasource.JavaCodeClassLoader;
+import com.ariescat.hotswap.javasource.ScriptClassLoader;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
@@ -9,6 +9,8 @@ import org.springframework.util.ClassUtils;
 import sun.font.Script;
 
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * @author Ariescat
@@ -20,7 +22,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
     private JavaCodeCustomizer customize;
 
-    private JavaCodeClassLoader classLoader;
+    private ScriptClassLoader classLoader;
 
     private Class<?> scriptClass;
 
@@ -43,13 +45,17 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
-        this.classLoader = new JavaCodeClassLoader(classLoader);
+        this.classLoader = AccessController.doPrivileged(
+                (PrivilegedAction<ScriptClassLoader>) () -> new ScriptClassLoader(ClassUtils.getDefaultClassLoader())
+        );
     }
 
-    private JavaCodeClassLoader getClassLoader() {
+    private ScriptClassLoader getClassLoader() {
         synchronized (this.scriptClassMonitor) {
             if (this.classLoader == null) {
-                this.classLoader = new JavaCodeClassLoader(ClassUtils.getDefaultClassLoader());
+                this.classLoader = AccessController.doPrivileged(
+                        (PrivilegedAction<ScriptClassLoader>) () -> new ScriptClassLoader(ClassUtils.getDefaultClassLoader())
+                );
             }
             return this.classLoader;
         }
@@ -110,7 +116,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
     }
 
     @Override
-    public Class<?> getScriptedObjectType(ScriptSource scriptSource) throws IOException, ScriptCompilationException {
+    public Class<?> getScriptedObjectType(ScriptSource scriptSource) throws ScriptCompilationException {
         synchronized (this.scriptClassMonitor) {
             try {
                 if (this.scriptClass == null || scriptSource.isModified()) {

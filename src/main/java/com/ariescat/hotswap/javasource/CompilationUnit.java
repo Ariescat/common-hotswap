@@ -7,18 +7,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import javax.tools.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 
 import static javax.tools.JavaFileObject.Kind;
 
 /**
+ * 自定义一个编译任务
+ *
  * @author Ariescat
  * @version 2020/1/10 15:43
  */
@@ -29,12 +31,17 @@ public class CompilationUnit {
     /**
      * The compiler.
      */
-    private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    private final static JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+    /**
+     * The Constant DEFAULT_JDK_VERSION.
+     */
+    private static final String DEFAULT_JDK_VERSION = "1.8";
 
     /**
      * The class loader.
      */
-    private final ClassLoaderImpl classLoader;
+    private final ScriptClassLoader classLoader;
 
     /**
      * The java file manager.
@@ -46,12 +53,8 @@ public class CompilationUnit {
      */
     private volatile List<String> options;
 
-    /**
-     * The Constant DEFAULT_JDK_VERSION.
-     */
-    private static final String DEFAULT_JDK_VERSION = "1.8";
 
-    public CompilationUnit(final ClassLoader loader) {
+    public CompilationUnit(ScriptClassLoader loader) {
         this(loader, DEFAULT_JDK_VERSION);
     }
 
@@ -61,8 +64,8 @@ public class CompilationUnit {
      * @param loader     the loader
      * @param jdkVersion the jdk version
      */
-    public CompilationUnit(final ClassLoader loader, final String jdkVersion) {
-        options = new ArrayList<String>();
+    public CompilationUnit(ScriptClassLoader loader, String jdkVersion) {
+        options = new ArrayList<>();
         options.add("-source");
         options.add(jdkVersion);
         options.add("-target");
@@ -73,14 +76,16 @@ public class CompilationUnit {
             throw new RuntimeException("compiler is null maybe you are on JRE enviroment please change to JDK environment.");
         }
         // 存放编译过程中输出的信息
-        DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<JavaFileObject>();
+        DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
         // 标准的内容管理器,更换成自己的实现，覆盖部分方法
         StandardJavaFileManager manager = compiler.getStandardFileManager(diagnosticCollector, null, StandardCharsets.UTF_8);
-        if (loader instanceof URLClassLoader
-                && (!loader.getClass().getName().equals("sun.misc.Launcher$AppClassLoader"))) {
+
+        ClassLoader parent = loader.getParent();
+        if (parent instanceof URLClassLoader
+                && (!parent.getClass().getName().equals("sun.misc.Launcher$AppClassLoader"))) {
             try {
-                URLClassLoader urlClassLoader = (URLClassLoader) loader;
-                List<File> files = new ArrayList<File>();
+                URLClassLoader urlClassLoader = (URLClassLoader) parent;
+                List<File> files = new ArrayList<>();
                 for (URL url : urlClassLoader.getURLs()) {
 
                     String file = url.getFile();
@@ -100,11 +105,7 @@ public class CompilationUnit {
             }
         }
 
-        classLoader = AccessController.doPrivileged(new PrivilegedAction<ClassLoaderImpl>() {
-            public ClassLoaderImpl run() {
-                return new ClassLoaderImpl(loader);
-            }
-        });
+        classLoader = loader;
         javaFileManager = new JavaFileManagerImpl(manager, classLoader);
     }
 
@@ -130,7 +131,7 @@ public class CompilationUnit {
                 .call();
         if (result == null || !result) {
             // 编译信息(错误 警告)
-            throw new IllegalStateException("Compilation failed. class: " + className + ", diagnostics: " + diagnosticCollector.getDiagnostics());
+            throw new IllegalStateException("Compilation failed! [" + className + "] error: " + diagnosticCollector.getDiagnostics());
         }
 
         stopWatch.stop();
@@ -154,155 +155,6 @@ public class CompilationUnit {
     }
 
     /**
-     * 自定义类加载器, 用来加载动态的字节码
-     */
-    private static final class ClassLoaderImpl extends ClassLoader {
-
-        /**
-         * The classes.
-         */
-        private final Map<String, JavaFileObject> classes = new HashMap<>();
-
-        /**
-         * Instantiates a new class loader impl.
-         *
-         * @param parentClassLoader the parent class loader
-         */
-        ClassLoaderImpl(final ClassLoader parentClassLoader) {
-            super(parentClassLoader);
-        }
-
-        /**
-         * Files.
-         *
-         * @return the collection
-         */
-        Collection<JavaFileObject> files() {
-            return Collections.unmodifiableCollection(classes.values());
-        }
-
-        /**
-         * Load class bytes.
-         *
-         * @param qualifiedClassName the qualified class name
-         * @return the byte[]
-         */
-        public byte[] loadClassBytes(final String qualifiedClassName) {
-            JavaFileObject file = classes.get(qualifiedClassName);
-            if (file != null) {
-                byte[] bytes = ((JavaFileObjectImpl) file).getByteCode();
-                return bytes;
-            }
-            return null;
-        }
-
-        /**
-         * (non-Javadoc)
-         *
-         * @see java.lang.ClassLoader#findClass(java.lang.String)
-         */
-        @Override
-        protected Class<?> findClass(final String qualifiedClassName) throws ClassNotFoundException {
-            JavaFileObject file = classes.get(qualifiedClassName);
-            if (file != null) {
-                byte[] bytes = ((JavaFileObjectImpl) file).getByteCode();
-                return defineClass(qualifiedClassName, bytes, 0, bytes.length);
-            }
-            try {
-                return ClassHelper.forNameWithCallerClassLoader(qualifiedClassName, getClass());
-            } catch (ClassNotFoundException nf) {
-                return super.findClass(qualifiedClassName);
-            }
-        }
-
-        /**
-         * Adds the.
-         *
-         * @param qualifiedClassName the qualified class name
-         * @param javaFile           the java file
-         */
-        void add(final String qualifiedClassName, final JavaFileObject javaFile) {
-            classes.put(qualifiedClassName, javaFile);
-        }
-
-        /**
-         * (non-Javadoc)
-         *
-         * @see java.lang.ClassLoader#loadClass(java.lang.String, boolean)
-         */
-        @Override
-        protected synchronized Class<?> loadClass(final String name, final boolean resolve)
-                throws ClassNotFoundException {
-            return super.loadClass(name, resolve);
-        }
-
-        /**
-         * (non-Javadoc)
-         *
-         * @see java.lang.ClassLoader#getResourceAsStream(java.lang.String)
-         */
-        @Override
-        public InputStream getResourceAsStream(final String name) {
-            if (name.endsWith(Kind.CLASS.extension)) {
-                String qualifiedClassName =
-                        name.substring(0, name.length() - Kind.CLASS.extension.length()).replace('/', '.');
-                JavaFileObjectImpl file = (JavaFileObjectImpl) classes.get(qualifiedClassName);
-                if (file != null) {
-                    return new ByteArrayInputStream(file.getByteCode());
-                }
-            }
-            return super.getResourceAsStream(name);
-        }
-    }
-
-    /**
-     * 自定义一个编译之后的字节码对象
-     */
-    public static final class JavaFileObjectImpl extends SimpleJavaFileObject {
-
-        private ByteArrayOutputStream bytecode;
-        private final CharSequence source;
-
-        /**
-         * Instantiates a new java file object impl.
-         *
-         * @param className the base name
-         * @param source    the source
-         */
-        public JavaFileObjectImpl(final String className, final CharSequence source) {
-            super(URI.create("string:///" + className.replaceAll("\\.", "/") + Kind.SOURCE.extension), Kind.SOURCE);
-            this.source = source;
-        }
-
-        public JavaFileObjectImpl(String className, Kind kind) {
-            super(URI.create("string:///" + className.replaceAll("\\.", "/") + kind.extension), kind);
-            this.source = null;
-        }
-
-        @Override
-        public CharSequence getCharContent(final boolean ignoreEncodingErrors) throws UnsupportedOperationException {
-            if (source == null) {
-                throw new UnsupportedOperationException("source == null");
-            }
-            return source;
-        }
-
-        @Override
-        public InputStream openInputStream() {
-            return new ByteArrayInputStream(getByteCode());
-        }
-
-        @Override
-        public OutputStream openOutputStream() {
-            return bytecode = new ByteArrayOutputStream();
-        }
-
-        public byte[] getByteCode() {
-            return bytecode.toByteArray();
-        }
-    }
-
-    /**
      * 自定义一个JavaFileManage来控制编译之后字节码的输出位置
      */
     private static final class JavaFileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
@@ -310,12 +162,12 @@ public class CompilationUnit {
         /**
          * The class loader.
          */
-        private final ClassLoaderImpl classLoader;
+        private final ScriptClassLoader classLoader;
 
         /**
          * The file objects.
          */
-        private final Map<URI, JavaFileObject> fileObjects = new HashMap<URI, JavaFileObject>();
+        private final Map<URI, JavaFileObject> fileObjects = new HashMap<>();
 
         /**
          * Instantiates a new java file manager impl.
@@ -323,17 +175,11 @@ public class CompilationUnit {
          * @param fileManager the file manager
          * @param classLoader the class loader
          */
-        public JavaFileManagerImpl(JavaFileManager fileManager, ClassLoaderImpl classLoader) {
+        public JavaFileManagerImpl(JavaFileManager fileManager, ScriptClassLoader classLoader) {
             super(fileManager);
             this.classLoader = classLoader;
         }
 
-        /**
-         * (non-Javadoc)
-         *
-         * @see javax.tools.ForwardingJavaFileManager#getFileForInput(javax.tools.JavaFileManager.Location,
-         * java.lang.String, java.lang.String)
-         */
         @Override
         public FileObject getFileForInput(Location location, String packageName, String relativeName)
                 throws IOException {
@@ -369,36 +215,18 @@ public class CompilationUnit {
             return URI.create(location.getName() + '/' + packageName + '/' + relativeName);
         }
 
-        /**
-         * (non-Javadoc)
-         *
-         * @see javax.tools.ForwardingJavaFileManager#getJavaFileForOutput(javax.tools.JavaFileManager.Location,
-         * java.lang.String, javax.tools.JavaFileObject.Kind, javax.tools.FileObject)
-         */
         @Override
-        public JavaFileObject getJavaFileForOutput(Location location, String qualifiedName, Kind kind,
-                                                   FileObject outputFile) throws IOException {
+        public JavaFileObject getJavaFileForOutput(Location location, String qualifiedName, Kind kind, FileObject outputFile) {
             JavaFileObject file = new JavaFileObjectImpl(qualifiedName, kind);
             classLoader.add(qualifiedName, file);
             return file;
         }
 
-        /**
-         * (non-Javadoc)
-         *
-         * @see javax.tools.ForwardingJavaFileManager#getClassLoader(javax.tools.JavaFileManager.Location)
-         */
         @Override
         public ClassLoader getClassLoader(JavaFileManager.Location location) {
             return classLoader;
         }
 
-        /**
-         * (non-Javadoc)
-         *
-         * @see javax.tools.ForwardingJavaFileManager#inferBinaryName(javax.tools.JavaFileManager.Location,
-         * javax.tools.JavaFileObject)
-         */
         @Override
         public String inferBinaryName(Location loc, JavaFileObject file) {
             if (file instanceof JavaFileObjectImpl) {
@@ -407,25 +235,15 @@ public class CompilationUnit {
             return super.inferBinaryName(loc, file);
         }
 
-        /**
-         * (non-Javadoc)
-         *
-         * @see javax.tools.ForwardingJavaFileManager#list(javax.tools.JavaFileManager.Location, java.lang.String,
-         * java.util.Set, boolean)
-         */
         @Override
         public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse)
                 throws IOException {
+            ArrayList<JavaFileObject> files = new ArrayList<>();
+
             Iterable<JavaFileObject> result = super.list(location, packageName, kinds, recurse);
-
-            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-            List<URL> urlList = new ArrayList<URL>();
-            Enumeration<URL> e = contextClassLoader.getResources("com");
-            while (e.hasMoreElements()) {
-                urlList.add(e.nextElement());
+            for (JavaFileObject file : result) {
+                files.add(file);
             }
-
-            ArrayList<JavaFileObject> files = new ArrayList<JavaFileObject>();
 
             if (location == StandardLocation.CLASS_PATH && kinds.contains(JavaFileObject.Kind.CLASS)) {
                 for (JavaFileObject file : fileObjects.values()) {
@@ -442,11 +260,6 @@ public class CompilationUnit {
                     }
                 }
             }
-
-            for (JavaFileObject file : result) {
-                files.add(file);
-            }
-
             return files;
         }
     }
