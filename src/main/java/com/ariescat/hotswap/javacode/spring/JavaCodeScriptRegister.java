@@ -59,7 +59,7 @@ public class JavaCodeScriptRegister implements ApplicationContextAware {
             // 注册到spring容器
             beanFactory.registerBeanDefinition(file.getName().replace(".java", ""), bd);
 
-            log.info("Register Java Source Script:{}", scriptLocator);
+            log.info("Register Java Source Script: {}", scriptLocator);
         });
     }
 
