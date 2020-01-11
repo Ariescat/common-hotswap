@@ -1,4 +1,6 @@
-package com.ariescat.hotswap.test;
+package com.ariescat.hotswap.example.bean;
+
+import com.ariescat.hotswap.example.IEat;
 
 /**
  * @author Ariescat

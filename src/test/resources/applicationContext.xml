@@ -15,5 +15,5 @@
     </bean>
 
     <!-- 注解扫描 -->
-    <context:component-scan base-package="com.ariescat.hotswap.test"/>
+    <context:component-scan base-package="com.ariescat.hotswap.example"/>
 </beans>

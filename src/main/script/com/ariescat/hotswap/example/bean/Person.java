@@ -1,8 +1,6 @@
-package com.ariescat.hotswap.test;
+package com.ariescat.hotswap.example.bean;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import com.ariescat.hotswap.example.IHello;
 
 public class Person implements IHello {
 

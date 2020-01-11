@@ -1,4 +1,4 @@
-package com.ariescat.hotswap.test;
+package com.ariescat.hotswap.example;
 
 /**
  * @author Ariescat
