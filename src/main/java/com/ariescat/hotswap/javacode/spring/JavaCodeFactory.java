@@ -90,7 +90,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
-                    this.scriptClass = getClassLoader().parseClass(scriptSource);
+                    this.scriptClass = getClassLoader().parseClass(scriptSourceLocator, scriptSource);
 
                     if (Script.class.isAssignableFrom(this.scriptClass)) {
                         // A Java script, probably creating an instance: let's execute it.
@@ -120,7 +120,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
                     this.wasModifiedForTypeCheck = true;
-                    this.scriptClass = getClassLoader().parseClass(scriptSource);
+                    this.scriptClass = getClassLoader().parseClass(scriptSourceLocator, scriptSource);
 
                     if (Script.class.isAssignableFrom(this.scriptClass)) {
                         // A Java script, probably creating an instance: let's execute it.

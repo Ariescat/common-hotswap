@@ -67,25 +67,25 @@ public class ScriptClassLoader extends ClassLoader {
     private byte[] loadClassBytes(final String qualifiedClassName) {
         JavaFileObject file = classes.get(qualifiedClassName);
         if (file != null) {
-            return ((JavaFileObjectImpl) file).getByteCode();
+            return ((JavaCompiledByteCode) file).getByteCode();
         }
         return null;
     }
 
-    public Class<?> parseClass(ScriptSource scriptSource) throws Exception {
-        return doParseClass(JavaFileObjectImpl.create(scriptSource));
+    public Class<?> parseClass(String scriptSourceLocator, ScriptSource scriptSource) throws Exception {
+        return doParseClass(JavaSource.create(scriptSourceLocator, scriptSource));
     }
 
     public Class<?> parseClass(File javaFile) throws Exception {
-        return doParseClass(JavaFileObjectImpl.create(javaFile));
+        return doParseClass(JavaSource.create(javaFile));
     }
 
-    private Class<?> doParseClass(JavaFileObjectImpl javaFileObject) throws Exception {
+    private Class<?> doParseClass(JavaSource javaSource) throws Exception {
         InnerLoader loader = AccessController.doPrivileged(
                 (PrivilegedAction<InnerLoader>) () -> new InnerLoader(ScriptClassLoader.this)
         );
         CompilationUnit unit = new CompilationUnit(loader, new ClassCollector(loader));
-        return unit.doCompile(javaFileObject);
+        return unit.doCompile(javaSource);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class ScriptClassLoader extends ClassLoader {
             String qualifiedClassName =
                     name.substring(0, name.length() - JavaFileObject.Kind.CLASS.extension.length())
                             .replace('/', '.');
-            JavaFileObjectImpl file = (JavaFileObjectImpl) classes.get(qualifiedClassName);
+            JavaCompiledByteCode file = (JavaCompiledByteCode) classes.get(qualifiedClassName);
             if (file != null) {
                 return new ByteArrayInputStream(file.getByteCode());
             }
@@ -135,9 +135,8 @@ public class ScriptClassLoader extends ClassLoader {
         }
 
         @Override
-        public Class<?> call(String className, byte[] bytes) throws Exception {
+        public Class<?> call(String className) throws Exception {
             Class<?> clazz = cl.loadClass(className);
-//            Class<?> clazz = cl.defineClass(className, bytes, 0, bytes.length);
             if (log.isDebugEnabled()) {
                 log.debug("loading class done [{}]", className);
             }

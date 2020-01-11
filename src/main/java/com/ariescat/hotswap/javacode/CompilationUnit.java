@@ -7,12 +7,14 @@ import org.slf4j.LoggerFactory;
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static javax.tools.JavaFileObject.Kind;
 
@@ -40,11 +42,6 @@ public class CompilationUnit {
      * The options
      */
     private volatile List<String> options;
-
-    /**
-     * The class loader
-     */
-    private final ScriptClassLoader classLoader;
 
     /**
      * A callback for finish compile
@@ -84,7 +81,6 @@ public class CompilationUnit {
             throw new RuntimeException("compiler is null maybe you are on JRE enviroment please change to JDK environment.");
         }
 
-        this.classLoader = loader;
         this.classgenCallback = classCollector;
 
         // 通过 JavaCompiler 取得标准 StandardJavaFileManager 对象，StandardJavaFileManager 对象主要负责编译文件对象的创建，编译的参数等等，我们只对它做些基本设置比如编译 CLASSPATH 等。
@@ -115,23 +111,20 @@ public class CompilationUnit {
         }
 
         // 更换成自己的实现，覆盖部分方法
-        this.javaFileManager = new JavaFileManagerImpl(manager, classLoader);
+        this.javaFileManager = new JavaFileManagerImpl(manager, loader);
     }
 
-    Class<?> doCompile(JavaFileObjectImpl javaFileObject) throws Exception {
-        return doCompile(javaFileObject, null);
-    }
+    synchronized Class<?> doCompile(JavaSource javaSource) throws Exception {
 
-    synchronized Class<?> doCompile(JavaFileObjectImpl javaFileObject, OutputStream os) throws Exception {
         long start = System.currentTimeMillis();
 
-        String suggestedClassName = javaFileObject.getName();
+        String suggestedClassName = javaSource.getName();
         if (log.isDebugEnabled()) {
-            log.debug("Begin to compile source code [{}] --> [{}]", suggestedClassName, javaFileObject.getSourcePath());
+            log.debug("Begin to compile source code [{}]", suggestedClassName);
         }
 
         //构造源代码对象
-        Boolean result = compiler.getTask(null, javaFileManager, diagnosticCollector, options, null, Collections.singletonList(javaFileObject))
+        Boolean result = compiler.getTask(null, javaFileManager, diagnosticCollector, options, null, Collections.singletonList(javaSource))
                 .call();
         if (result == null || !result) {
             // 编译信息(错误 警告)
@@ -143,20 +136,7 @@ public class CompilationUnit {
             log.debug("compile source code done. class [{}] cost {} mills", suggestedClassName, end - start);
         }
 
-//        String compiledClassName = javaFileObject.getCompiledClassName();
-//        byte[] bytes = javaFileObject.getByteCode();
-//        Class<?> clazz = classgenCallback.call(compiledClassName, bytes);
-
-//        javaFileManager.
-        Class<?> clazz = classgenCallback.call("com.ariescat.hotswap.test.Person", null);
-
-        if (os != null) {
-//            if (bytes != null) {
-//                os.write(bytes);
-//                os.flush();
-//            }
-        }
-        return clazz;
+        return classgenCallback.call(suggestedClassName);
     }
 
     /**
@@ -168,11 +148,6 @@ public class CompilationUnit {
          * The class loader.
          */
         private final ScriptClassLoader classLoader;
-
-        /**
-         * The file objects.
-         */
-        private final Map<String, JavaFileObject> fileObjects = new HashMap<>();
 
         /**
          * Instantiates a new java file manager impl.
@@ -188,7 +163,7 @@ public class CompilationUnit {
         @Override
         public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject outputFile) throws IOException {
             if (kind == JavaFileObject.Kind.CLASS) {
-                JavaFileObjectImpl object = new JavaFileObjectImpl(URI.create(className + Kind.CLASS.extension), Kind.CLASS);
+                JavaCompiledByteCode object = new JavaCompiledByteCode(URI.create(className + Kind.CLASS.extension), Kind.CLASS);
                 classLoader.add(className, object);
                 return object;
             } else {
@@ -201,13 +176,13 @@ public class CompilationUnit {
             return classLoader;
         }
 
-        @Override
-        public String inferBinaryName(Location loc, JavaFileObject file) {
-            if (file instanceof JavaFileObjectImpl) {
-                return file.getName();
-            }
-            return super.inferBinaryName(loc, file);
-        }
+//        @Override
+//        public String inferBinaryName(Location loc, JavaFileObject file) {
+//            if (file instanceof JavaCompiledByteCode) {
+//                return file.getName();
+//            }
+//            return super.inferBinaryName(loc, file);
+//        }
 
         @Override
         public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse)
@@ -220,24 +195,14 @@ public class CompilationUnit {
             }
 
             if (location == StandardLocation.CLASS_PATH && kinds.contains(JavaFileObject.Kind.CLASS)) {
-                for (JavaFileObject file : fileObjects.values()) {
-                    if (file.getKind() == JavaFileObject.Kind.CLASS && file.getName().startsWith(packageName)) {
-                        files.add(file);
-                    }
-                }
                 files.addAll(classLoader.files());
-            } else if (location == StandardLocation.SOURCE_PATH && kinds.contains(JavaFileObject.Kind.SOURCE)) {
-                for (JavaFileObject file : fileObjects.values()) {
-                    if (file.getKind() == JavaFileObject.Kind.SOURCE && file.getName().startsWith(packageName)) {
-                        files.add(file);
-                    }
-                }
             }
+
             return files;
         }
     }
 
     public interface ClassgenCallback {
-        Class<?> call(String className, byte[] after) throws Exception;
+        Class<?> call(String className) throws Exception;
     }
 }
