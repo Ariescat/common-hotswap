@@ -8,6 +8,7 @@ import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +54,7 @@ public class CompilationUnit {
     /**
      * The java file manager
      */
-    private JavaFileManagerImpl javaFileManager;
+    private JavaFileManager javaFileManager;
 
     /**
      * 初始化诊断收集器
@@ -142,15 +143,18 @@ public class CompilationUnit {
             log.debug("compile source code done. class [{}] cost {} mills", suggestedClassName, end - start);
         }
 
-        String compiledClassName = javaFileObject.getCompiledClassName();
-        byte[] bytes = javaFileObject.getByteCode();
-        Class<?> clazz = classgenCallback.call(compiledClassName, bytes);
+//        String compiledClassName = javaFileObject.getCompiledClassName();
+//        byte[] bytes = javaFileObject.getByteCode();
+//        Class<?> clazz = classgenCallback.call(compiledClassName, bytes);
+
+//        javaFileManager.
+        Class<?> clazz = classgenCallback.call("com.ariescat.hotswap.Person", null);
 
         if (os != null) {
-            if (bytes != null) {
-                os.write(bytes);
-                os.flush();
-            }
+//            if (bytes != null) {
+//                os.write(bytes);
+//                os.flush();
+//            }
         }
         return clazz;
     }
@@ -182,16 +186,27 @@ public class CompilationUnit {
         }
 
         @Override
-        public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject outputFile) {
-            JavaFileObjectImpl impl = (JavaFileObjectImpl) outputFile;
-            impl.setCompiledClassName(className);
-            LoadedCache.classes().put(className, impl);
-            return impl;
+        public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject outputFile) throws IOException {
+            if (kind == JavaFileObject.Kind.CLASS) {
+                JavaFileObjectImpl object = new JavaFileObjectImpl(URI.create(className + Kind.CLASS.extension), Kind.CLASS);
+                classLoader.add(className, object);
+                return object;
+            } else {
+                return super.getJavaFileForOutput(location, className, kind, outputFile);
+            }
         }
 
         @Override
         public ClassLoader getClassLoader(JavaFileManager.Location location) {
             return classLoader;
+        }
+
+        @Override
+        public String inferBinaryName(Location loc, JavaFileObject file) {
+            if (file instanceof JavaFileObjectImpl) {
+                return file.getName();
+            }
+            return super.inferBinaryName(loc, file);
         }
 
         @Override
@@ -210,7 +225,7 @@ public class CompilationUnit {
                         files.add(file);
                     }
                 }
-                files.addAll(LoadedCache.classes().values());
+                files.addAll(classLoader.files());
             } else if (location == StandardLocation.SOURCE_PATH && kinds.contains(JavaFileObject.Kind.SOURCE)) {
                 for (JavaFileObject file : fileObjects.values()) {
                     if (file.getKind() == JavaFileObject.Kind.SOURCE && file.getName().startsWith(packageName)) {

@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 自定义类加载器, 用来加载动态的字节码
@@ -22,6 +26,11 @@ public class ScriptClassLoader extends ClassLoader {
     private final static Logger log = LoggerFactory.getLogger(ScriptClassLoader.class);
 
     /**
+     * this cache contains the loaded classes or PARSING, if the class is currently parsed
+     */
+    private final Map<String, JavaFileObject> classes = new ConcurrentHashMap<>();
+
+    /**
      * Instantiates a new class loader impl.
      *
      * @param parentClassLoader the parent class loader
@@ -30,6 +39,38 @@ public class ScriptClassLoader extends ClassLoader {
         super(parentClassLoader);
     }
 
+    /**
+     * Adds the cache.
+     *
+     * @param qualifiedClassName the qualified class name
+     * @param javaFile           the java file
+     */
+    void add(final String qualifiedClassName, final JavaFileObject javaFile) {
+        classes.put(qualifiedClassName, javaFile);
+    }
+
+    /**
+     * Files.
+     *
+     * @return the collection
+     */
+    Collection<JavaFileObject> files() {
+        return Collections.unmodifiableCollection(classes.values());
+    }
+
+    /**
+     * Load class bytes.
+     *
+     * @param qualifiedClassName the qualified class name
+     * @return the byte[]
+     */
+    private byte[] loadClassBytes(final String qualifiedClassName) {
+        JavaFileObject file = classes.get(qualifiedClassName);
+        if (file != null) {
+            return ((JavaFileObjectImpl) file).getByteCode();
+        }
+        return null;
+    }
 
     public Class<?> parseClass(ScriptSource scriptSource) throws Exception {
         return doParseClass(JavaFileObjectImpl.create(scriptSource));
@@ -49,9 +90,8 @@ public class ScriptClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(final String qualifiedClassName) throws ClassNotFoundException {
-        JavaFileObject file = LoadedCache.classes().get(qualifiedClassName);
-        if (file != null) {
-            byte[] bytes = ((JavaFileObjectImpl) file).getByteCode();
+        byte[] bytes = loadClassBytes(qualifiedClassName);
+        if (bytes != null) {
             return defineClass(qualifiedClassName, bytes, 0, bytes.length);
         }
         try {
@@ -73,7 +113,7 @@ public class ScriptClassLoader extends ClassLoader {
             String qualifiedClassName =
                     name.substring(0, name.length() - JavaFileObject.Kind.CLASS.extension.length())
                             .replace('/', '.');
-            JavaFileObjectImpl file = (JavaFileObjectImpl) LoadedCache.classes().get(qualifiedClassName);
+            JavaFileObjectImpl file = (JavaFileObjectImpl) classes.get(qualifiedClassName);
             if (file != null) {
                 return new ByteArrayInputStream(file.getByteCode());
             }

@@ -16,14 +16,14 @@ public class Person implements IHello {
         this.name = name;
     }
 
-    public void test() {
-        System.out.println("test");
-    }
-
-
-    public void test2() {
-        System.out.println("test2");
-    }
+//    public void test() {
+//        System.out.println("test");
+//    }
+//
+//
+//    public void test2() {
+//        System.out.println("test2");
+//    }
 
     @Override
     public void sayHello() {
@@ -33,21 +33,21 @@ public class Person implements IHello {
         System.err.println(i);
 
         // 测试新增方法
-        test();
-        test2();
+//        test();
+//        test2();
 
         // 测试新增内部类
-        ArrayList<Integer> list = new ArrayList<>();
-        list.add(5);
-        list.add(1);
-        list.add(4);
-        list.add(7);
-        Collections.sort(list, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o2 - o1;
-            }
-        });
-        System.err.println(list);
+//        ArrayList<Integer> list = new ArrayList<>();
+//        list.add(5);
+//        list.add(1);
+//        list.add(4);
+//        list.add(7);
+//        Collections.sort(list, new Comparator<Integer>() {
+//            @Override
+//            public int compare(Integer o1, Integer o2) {
+//                return o2 - o1;
+//            }
+//        });
+//        System.err.println(list);
     }
 }

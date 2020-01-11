@@ -1,6 +1,8 @@
 package com.ariescat.hotswap.javasource;
 
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import sun.misc.IOUtils;
@@ -16,6 +18,8 @@ import java.net.URI;
  * @version 2020/1/10 20:34
  */
 public class JavaFileObjectImpl extends SimpleJavaFileObject {
+
+    private static String p = System.getProperty("user.dir");
 
     /**
      * 文件源
@@ -53,6 +57,11 @@ public class JavaFileObjectImpl extends SimpleJavaFileObject {
                 try {
                     if (scriptSource instanceof ResourceScriptSource) {
                         ResourceScriptSource resourceScriptSource = (ResourceScriptSource) scriptSource;
+//                        Resource resource = resourceScriptSource.getResource();
+//                        if (resource instanceof ClassPathResource) {
+//                            return ((ClassPathResource) resource).getPath();
+//                        }
+//                        return resource.getURL().getPath().replaceFirst(p, "");
                         return resourceScriptSource.getResource().getURL().getPath();
                     }
                 } catch (IOException e) {
@@ -105,6 +114,11 @@ public class JavaFileObjectImpl extends SimpleJavaFileObject {
         this.source = source;
     }
 
+    public JavaFileObjectImpl(URI uri, Kind kind) {
+        super(uri, kind);
+        this.source = null;
+    }
+
     @Override
     public CharSequence getCharContent(final boolean ignoreEncodingErrors) throws UnsupportedOperationException {
         if (source == null) {
@@ -122,6 +136,9 @@ public class JavaFileObjectImpl extends SimpleJavaFileObject {
         return compiledBytecode = new ByteArrayOutputStream();
     }
 
+    /**
+     * 获取编译成功的字节码byte[]
+     */
     public byte[] getByteCode() {
         return compiledBytecode.toByteArray();
     }
