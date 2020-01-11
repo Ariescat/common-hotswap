@@ -1,6 +1,24 @@
 ## Java 代码热部署总结
 
+#### 本工程提供的方案
 
+* `JDK`动态编译，并整合进`Spring`架构，用户无需关注具体实现方式
+
+  用法：把自己的热点代码写进一个单独的非`source folders`的文件夹（本工程是`script`），然后用`maven`的`maven-resourczes-plugin`把该文件夹当成`resources`编译进运行目录。
+
+  具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
+
+
+
+* todo 
+  * 基于`agentmain`的函数体级别更热
+  * 基于`agentmain`的匿名内部类新增
+
+
+
+* 以上三点应该可以满足大部分生产环境上的bug修复。
+
+  
 
 #### 本人探索到的一些热更方式
 
