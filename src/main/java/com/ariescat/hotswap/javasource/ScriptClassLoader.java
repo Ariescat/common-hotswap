@@ -67,7 +67,6 @@ public class ScriptClassLoader extends ClassLoader {
         return super.loadClass(name, resolve);
     }
 
-
     @Override
     public InputStream getResourceAsStream(final String name) {
         if (name.endsWith(JavaFileObject.Kind.CLASS.extension)) {
@@ -96,9 +95,9 @@ public class ScriptClassLoader extends ClassLoader {
         }
 
         @Override
-        public Class<?> call(String className, byte[] bytes) {
-//            Class<?> clazz = cl.loadClass(className);
-            Class<?> clazz = cl.defineClass(className, bytes, 0, bytes.length);
+        public Class<?> call(String className, byte[] bytes) throws Exception {
+            Class<?> clazz = cl.loadClass(className);
+//            Class<?> clazz = cl.defineClass(className, bytes, 0, bytes.length);
             if (log.isDebugEnabled()) {
                 log.debug("loading class done [{}]", className);
             }
