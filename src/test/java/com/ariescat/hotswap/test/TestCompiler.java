@@ -1,10 +1,12 @@
-package com.ariescat.hotswap;
+package com.ariescat.hotswap.test;
 
 import com.ariescat.hotswap.javacode.ScriptClassLoader;
 
 import java.io.File;
 
 /**
+ * CustomStringJavaCompiler
+ *
  * @author Ariescat
  * @version 2020/1/10 17:20
  */
@@ -12,7 +14,7 @@ public class TestCompiler {
 
     public static void main(String[] args) {
         new Thread(() -> {
-            File file = new File(System.getProperty("user.dir") + "\\src\\main\\script\\com\\ariescat\\hotswap\\Person.java");
+            File file = new File(System.getProperty("user.dir") + "\\src\\main\\script\\com\\ariescat\\hotswap\\test\\Person.java");
             long lastModified = 0;
             IHello hello = null;
 

@@ -135,7 +135,7 @@ public class CompilationUnit {
                 .call();
         if (result == null || !result) {
             // 编译信息(错误 警告)
-            throw new IllegalStateException("Compilation failed! [" + suggestedClassName + "] error: " + diagnosticCollector.getDiagnostics());
+            throw new IllegalStateException("Compilation failed! " + diagnosticCollector.getDiagnostics());
         }
 
         long end = System.currentTimeMillis();
@@ -148,7 +148,7 @@ public class CompilationUnit {
 //        Class<?> clazz = classgenCallback.call(compiledClassName, bytes);
 
 //        javaFileManager.
-        Class<?> clazz = classgenCallback.call("com.ariescat.hotswap.Person", null);
+        Class<?> clazz = classgenCallback.call("com.ariescat.hotswap.test.Person", null);
 
         if (os != null) {
 //            if (bytes != null) {

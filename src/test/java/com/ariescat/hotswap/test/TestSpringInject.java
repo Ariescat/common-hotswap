@@ -1,4 +1,4 @@
-package com.ariescat.hotswap;
+package com.ariescat.hotswap.test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -16,6 +16,8 @@ public class TestSpringInject {
                 try {
                     IHello bean = context.getBean(IHello.class);
                     bean.sayHello();
+                    IEat eat = context.getBean(IEat.class);
+                    eat.eat();
                     System.out.println("----------------------");
                 } catch (Throwable e) {
                     e.printStackTrace();
