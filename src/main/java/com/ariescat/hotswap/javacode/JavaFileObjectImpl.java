@@ -1,8 +1,6 @@
-package com.ariescat.hotswap.javasource;
+package com.ariescat.hotswap.javacode;
 
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import sun.misc.IOUtils;

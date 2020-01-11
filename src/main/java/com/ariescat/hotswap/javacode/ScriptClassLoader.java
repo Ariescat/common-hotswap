@@ -1,4 +1,4 @@
-package com.ariescat.hotswap.javasource;
+package com.ariescat.hotswap.javacode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +127,7 @@ public class ScriptClassLoader extends ClassLoader {
         }
     }
 
-    public static class ClassCollector implements CompilationUnit.ClassgenCallback {
+    static class ClassCollector implements CompilationUnit.ClassgenCallback {
         private final ScriptClassLoader cl;
 
         ClassCollector(ScriptClassLoader cl) {

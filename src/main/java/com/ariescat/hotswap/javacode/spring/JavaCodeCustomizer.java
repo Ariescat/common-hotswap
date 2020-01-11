@@ -1,4 +1,4 @@
-package com.ariescat.hotswap.javasource.spring;
+package com.ariescat.hotswap.javacode.spring;
 
 /**
  * @author Ariescat

@@ -1,6 +1,6 @@
 package com.ariescat.hotswap;
 
-import com.ariescat.hotswap.javasource.ScriptClassLoader;
+import com.ariescat.hotswap.javacode.ScriptClassLoader;
 
 import java.io.File;
 

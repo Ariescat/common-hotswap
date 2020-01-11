@@ -1,4 +1,4 @@
-package com.ariescat.hotswap.javasource.spring;
+package com.ariescat.hotswap.javacode.spring;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
-package com.ariescat.hotswap.javasource.spring;
+package com.ariescat.hotswap.javacode.spring;
 
-import com.ariescat.hotswap.javasource.ScriptClassLoader;
+import com.ariescat.hotswap.javacode.ScriptClassLoader;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
