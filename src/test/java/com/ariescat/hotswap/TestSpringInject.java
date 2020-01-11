@@ -17,9 +17,13 @@ public class TestSpringInject {
                     IHello bean = context.getBean(IHello.class);
                     bean.sayHello();
                     System.out.println("----------------------");
-
-                    Thread.sleep(2000);
                 } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    Thread.sleep(3500);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }

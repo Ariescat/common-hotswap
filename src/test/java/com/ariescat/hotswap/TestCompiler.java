@@ -1,12 +1,8 @@
 package com.ariescat.hotswap;
 
-import com.ariescat.hotswap.javasource.CompilationUnit;
 import com.ariescat.hotswap.javasource.ScriptClassLoader;
-import com.ariescat.hotswap.javasource.definition.JavaCodeStringDefinition;
-import sun.misc.IOUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 
 /**
  * @author Ariescat
@@ -18,22 +14,23 @@ public class TestCompiler {
         new Thread(() -> {
             while (true) {
                 try {
-                    String dir = System.getProperty("user.dir");
-                    File file = new File(dir + "\\src\\main\\script\\com\\ariescat\\hotswap\\Person.java");
-                    FileInputStream fileInputStream = new FileInputStream(file);
-                    byte[] bytes = IOUtils.readFully(fileInputStream, -1, false);
-                    fileInputStream.close();
+                    File file = new File(System.getProperty("user.dir") + "\\src\\main\\script\\com\\ariescat\\hotswap\\Person.java");
 
-                    CompilationUnit unit = new CompilationUnit(new ScriptClassLoader(TestCompiler.class.getClassLoader()));
-                    Class<?> clazz = unit.doCompile(new JavaCodeStringDefinition("com.ariescat.hotswap.Person", new String(bytes)));
-//                    Class<?> clazz = unit.doCompile(new JavaCodeFileDefinition(file));
+                    ScriptClassLoader classLoader = new ScriptClassLoader(Thread.currentThread().getContextClassLoader());
+                    Class<?> clazz = classLoader.parseClass(file);
 
                     IHello hello = (IHello) clazz.newInstance();
                     hello.sayHello();
+
                     System.out.println("----------------------");
 
-                    Thread.sleep(500);
                 } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    Thread.sleep(3500);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }

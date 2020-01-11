@@ -1,10 +1,12 @@
 package com.ariescat.hotswap.javasource;
 
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.scripting.ScriptSource;
+import org.springframework.scripting.support.ResourceScriptSource;
+import sun.misc.IOUtils;
+
 import javax.tools.SimpleJavaFileObject;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 
 /**
@@ -15,44 +17,139 @@ import java.net.URI;
  */
 public class JavaFileObjectImpl extends SimpleJavaFileObject {
 
-    private ByteArrayOutputStream bytecode;
-    private final CharSequence source;
+    /**
+     * 文件源
+     */
+    private Source source;
+    /**
+     * 编译后的字节流
+     */
+    private ByteArrayOutputStream compiledBytecode;
+    /**
+     * 编译后的全限定类名
+     */
+    private String compiledClassName;
+
+    public static JavaFileObjectImpl create(ScriptSource scriptSource) {
+        return new JavaFileObjectImpl(new Source() {
+
+            @Override
+            public String getScriptAsString() throws IOException {
+                return scriptSource.getScriptAsString();
+            }
+
+            @Override
+            public boolean isModified() {
+                return scriptSource.isModified();
+            }
+
+            @Override
+            public String suggestedClassName() {
+                return scriptSource.suggestedClassName();
+            }
+
+            @Override
+            public String getPath() {
+                try {
+                    if (scriptSource instanceof ResourceScriptSource) {
+                        ResourceScriptSource resourceScriptSource = (ResourceScriptSource) scriptSource;
+                        return resourceScriptSource.getResource().getURL().getPath();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return "";
+            }
+        });
+    }
+
+    public static JavaFileObjectImpl create(File javaFile) throws IllegalAccessException {
+        if (!"java".equals(FilenameUtils.getExtension(javaFile.getName()))) {
+            throw new IllegalAccessException("not a java file!" + javaFile.getPath());
+        }
+        long lastModified = javaFile.lastModified();
+        return new JavaFileObjectImpl(new Source() {
+
+            @Override
+            public String getScriptAsString() throws IOException {
+                try (FileInputStream fileInputStream = new FileInputStream(javaFile)) {
+                    byte[] bytes = IOUtils.readFully(fileInputStream, -1, false);
+                    return new String(bytes);
+                }
+            }
+
+            @Override
+            public boolean isModified() {
+                return javaFile.lastModified() == lastModified;
+            }
+
+            @Override
+            public String suggestedClassName() {
+                return FilenameUtils.getBaseName(javaFile.getName());
+            }
+
+            @Override
+            public String getPath() {
+                return javaFile.getPath();
+            }
+        });
+    }
 
     /**
      * Instantiates a new java file object impl.
      *
-     * @param className the base name
-     * @param source    the source
+     * @param source 文件源
      */
-    public JavaFileObjectImpl(final String className, final CharSequence source) {
-        super(URI.create(className.replaceAll("\\.", "/") + Kind.SOURCE.extension), Kind.SOURCE);
+    private JavaFileObjectImpl(Source source) {
+        super(URI.create(source.suggestedClassName().replaceAll("\\.", "/") + Kind.SOURCE.extension), Kind.SOURCE);
         this.source = source;
-    }
-
-    public JavaFileObjectImpl(String className, Kind kind) {
-        super(URI.create(className.replaceAll("\\.", "/") + kind.extension), kind);
-        this.source = null;
     }
 
     @Override
     public CharSequence getCharContent(final boolean ignoreEncodingErrors) throws UnsupportedOperationException {
         if (source == null) {
-            throw new UnsupportedOperationException("source == null");
+            throw new UnsupportedOperationException("source is null");
         }
-        return source;
-    }
-
-    @Override
-    public InputStream openInputStream() {
-        return new ByteArrayInputStream(getByteCode());
+        try {
+            return source.getScriptAsString();
+        } catch (IOException e) {
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     @Override
     public OutputStream openOutputStream() {
-        return bytecode = new ByteArrayOutputStream();
+        return compiledBytecode = new ByteArrayOutputStream();
     }
 
     public byte[] getByteCode() {
-        return bytecode.toByteArray();
+        return compiledBytecode.toByteArray();
+    }
+
+    @Override
+    public String getName() {
+        return source.suggestedClassName();
+    }
+
+    public String getCompiledClassName() {
+        return compiledClassName;
+    }
+
+    public void setCompiledClassName(String compiledClassName) {
+        this.compiledClassName = compiledClassName;
+    }
+
+    public String getSourcePath() {
+        return source.getPath();
+    }
+
+    interface Source {
+        String getScriptAsString() throws IOException;
+
+        boolean isModified();
+
+        String suggestedClassName();
+
+        String getPath();
     }
 }

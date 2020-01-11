@@ -1,14 +1,15 @@
 package com.ariescat.hotswap.javasource;
 
-import com.ariescat.hotswap.javasource.definition.JavaCodeStringDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scripting.ScriptSource;
 
 import javax.tools.JavaFileObject;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * 自定义类加载器, 用来加载动态的字节码
@@ -18,10 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ScriptClassLoader extends ClassLoader {
 
-    /**
-     * this cache contains the loaded classes or PARSING, if the class is currently parsed
-     */
-    private final static Map<String, JavaFileObject> classes = new ConcurrentHashMap<>();
+    private final static Logger log = LoggerFactory.getLogger(ScriptClassLoader.class);
 
     /**
      * Instantiates a new class loader impl.
@@ -32,47 +30,26 @@ public class ScriptClassLoader extends ClassLoader {
         super(parentClassLoader);
     }
 
-    public Class<?> parseClass(String scriptAsString, String suggestedClassName) throws Exception {
-        JavaCodeStringDefinition definition = new JavaCodeStringDefinition(suggestedClassName, scriptAsString);
-        return new CompilationUnit(this).doCompile(definition);
+
+    public Class<?> parseClass(ScriptSource scriptSource) throws Exception {
+        return doParseClass(JavaFileObjectImpl.create(scriptSource));
     }
 
-    /**
-     * Adds the cache.
-     *
-     * @param qualifiedClassName the qualified class name
-     * @param javaFile           the java file
-     */
-    void add(final String qualifiedClassName, final JavaFileObject javaFile) {
-        classes.put(qualifiedClassName, javaFile);
+    public Class<?> parseClass(File javaFile) throws Exception {
+        return doParseClass(JavaFileObjectImpl.create(javaFile));
     }
 
-    /**
-     * Files.
-     *
-     * @return the collection
-     */
-    Collection<JavaFileObject> files() {
-        return Collections.unmodifiableCollection(classes.values());
-    }
-
-    /**
-     * Load class bytes.
-     *
-     * @param qualifiedClassName the qualified class name
-     * @return the byte[]
-     */
-    public byte[] loadClassBytes(final String qualifiedClassName) {
-        JavaFileObject file = classes.get(qualifiedClassName);
-        if (file != null) {
-            return ((JavaFileObjectImpl) file).getByteCode();
-        }
-        return null;
+    private Class<?> doParseClass(JavaFileObjectImpl javaFileObject) throws Exception {
+        InnerLoader loader = AccessController.doPrivileged(
+                (PrivilegedAction<InnerLoader>) () -> new InnerLoader(ScriptClassLoader.this)
+        );
+        CompilationUnit unit = new CompilationUnit(loader, new ClassCollector(loader));
+        return unit.doCompile(javaFileObject);
     }
 
     @Override
     protected Class<?> findClass(final String qualifiedClassName) throws ClassNotFoundException {
-        JavaFileObject file = classes.get(qualifiedClassName);
+        JavaFileObject file = LoadedCache.classes().get(qualifiedClassName);
         if (file != null) {
             byte[] bytes = ((JavaFileObjectImpl) file).getByteCode();
             return defineClass(qualifiedClassName, bytes, 0, bytes.length);
@@ -97,7 +74,7 @@ public class ScriptClassLoader extends ClassLoader {
             String qualifiedClassName =
                     name.substring(0, name.length() - JavaFileObject.Kind.CLASS.extension.length())
                             .replace('/', '.');
-            JavaFileObjectImpl file = (JavaFileObjectImpl) classes.get(qualifiedClassName);
+            JavaFileObjectImpl file = (JavaFileObjectImpl) LoadedCache.classes().get(qualifiedClassName);
             if (file != null) {
                 return new ByteArrayInputStream(file.getByteCode());
             }
@@ -105,4 +82,27 @@ public class ScriptClassLoader extends ClassLoader {
         return super.getResourceAsStream(name);
     }
 
+    static class InnerLoader extends ScriptClassLoader {
+        InnerLoader(ScriptClassLoader delegate) {
+            super(delegate);
+        }
+    }
+
+    public static class ClassCollector implements CompilationUnit.ClassgenCallback {
+        private final ScriptClassLoader cl;
+
+        ClassCollector(ScriptClassLoader cl) {
+            this.cl = cl;
+        }
+
+        @Override
+        public Class<?> call(String className, byte[] bytes) {
+//            Class<?> clazz = cl.loadClass(className);
+            Class<?> clazz = cl.defineClass(className, bytes, 0, bytes.length);
+            if (log.isDebugEnabled()) {
+                log.debug("loading class done [{}]", className);
+            }
+            return clazz;
+        }
+    }
 }

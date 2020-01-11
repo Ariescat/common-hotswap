@@ -8,7 +8,6 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.util.ClassUtils;
 import sun.font.Script;
 
-import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -77,7 +76,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
     }
 
     @Override
-    public Object getScriptedObject(ScriptSource scriptSource, Class<?>... actualInterfaces) throws IOException, ScriptCompilationException {
+    public Object getScriptedObject(ScriptSource scriptSource, Class<?>... actualInterfaces) throws ScriptCompilationException {
         synchronized (this.scriptClassMonitor) {
             try {
                 Class<?> scriptClassToExecute;
@@ -91,10 +90,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
-                    // TODO 1.这里如果不每次new一个新的ClassLoader的话，就不会重新加载，但是如果每次都new，那ClassLoader会不会很多？
-                    // TODO 2.scriptSource.suggestedClassName() 获取的不是全限定类名，就无法加载
-                    this.scriptClass = getClassLoader().parseClass(
-                            scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+                    this.scriptClass = getClassLoader().parseClass(scriptSource);
 
                     if (Script.class.isAssignableFrom(this.scriptClass)) {
                         // A Java script, probably creating an instance: let's execute it.
@@ -124,8 +120,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
                 if (this.scriptClass == null || scriptSource.isModified()) {
                     // New script content...
                     this.wasModifiedForTypeCheck = true;
-                    this.scriptClass = getClassLoader().parseClass(
-                            scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+                    this.scriptClass = getClassLoader().parseClass(scriptSource);
 
                     if (Script.class.isAssignableFrom(this.scriptClass)) {
                         // A Java script, probably creating an instance: let's execute it.
