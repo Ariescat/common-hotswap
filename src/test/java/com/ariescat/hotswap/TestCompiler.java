@@ -12,18 +12,22 @@ public class TestCompiler {
 
     public static void main(String[] args) {
         new Thread(() -> {
+            File file = new File(System.getProperty("user.dir") + "\\src\\main\\script\\com\\ariescat\\hotswap\\Person.java");
+            long lastModified = 0;
+            IHello hello = null;
+
+            ScriptClassLoader classLoader = new ScriptClassLoader(Thread.currentThread().getContextClassLoader());
             while (true) {
                 try {
-                    File file = new File(System.getProperty("user.dir") + "\\src\\main\\script\\com\\ariescat\\hotswap\\Person.java");
 
-                    ScriptClassLoader classLoader = new ScriptClassLoader(Thread.currentThread().getContextClassLoader());
-                    Class<?> clazz = classLoader.parseClass(file);
+                    if (lastModified != file.lastModified()) {
+                        Class<?> clazz = classLoader.parseClass(file);
+                        hello = (IHello) clazz.newInstance();
+                        lastModified = file.lastModified();
+                    }
 
-                    IHello hello = (IHello) clazz.newInstance();
                     hello.sayHello();
-
                     System.out.println("----------------------");
-
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

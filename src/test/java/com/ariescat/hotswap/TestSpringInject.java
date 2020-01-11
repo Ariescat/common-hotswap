@@ -10,8 +10,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TestSpringInject {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
         new Thread(() -> {
+            ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
             while (true) {
                 try {
                     IHello bean = context.getBean(IHello.class);
