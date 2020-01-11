@@ -6,7 +6,7 @@
 
     <groupId>com.ariescat.hotswap</groupId>
     <artifactId>hotswap-core</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <spring.version>4.3.14.RELEASE</spring.version>
