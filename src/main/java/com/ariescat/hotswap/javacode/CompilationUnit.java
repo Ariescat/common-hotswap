@@ -44,7 +44,7 @@ public class CompilationUnit {
     private volatile List<String> options;
 
     /**
-     * A callback for finish compile
+     * The callback when finish compile
      */
     private final ClassgenCallback classgenCallback;
 
@@ -176,13 +176,19 @@ public class CompilationUnit {
             return classLoader;
         }
 
-//        @Override
-//        public String inferBinaryName(Location loc, JavaFileObject file) {
+        /**
+         * 直接用 ScriptClassLoader 加载， file 类型为 JavaCompiledByteCode，
+         * JavacFileManager#inferBinaryName 作了 instanceof BaseFileObject 的判断，不重写会抛异常
+         * <p>
+         * 但如果用 InnerLoader 加载则是这个类型：RegularFileObject，便不会报错... 好奇怪...
+         */
+        @Override
+        public String inferBinaryName(Location loc, JavaFileObject file) {
 //            if (file instanceof JavaCompiledByteCode) {
 //                return file.getName();
 //            }
-//            return super.inferBinaryName(loc, file);
-//        }
+            return super.inferBinaryName(loc, file);
+        }
 
         @Override
         public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse)
