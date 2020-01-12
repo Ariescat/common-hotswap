@@ -171,7 +171,7 @@ public class JavaCodeFactory implements ScriptFactory, BeanClassLoaderAware {
 
     @Override
     public String toString() {
-        return "JavaSourceScriptFactory: script source locator [" + this.scriptSourceLocator + "]";
+        return getClass().getSimpleName() + ": script source locator [" + this.scriptSourceLocator + "]";
     }
 
     /**
