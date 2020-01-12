@@ -67,14 +67,14 @@ public class JavaSource extends SimpleJavaFileObject {
                 String name = scriptSourceLocator;
                 int start = name.indexOf('\\');
                 if (start != -1) {
-                    int end = name.lastIndexOf('.');
+                    int end = name.lastIndexOf(Kind.SOURCE.extension);
                     if (end != -1) {
                         name = name.substring(start + 1, end);
                     } else {
                         name = name.substring(start + 1);
                     }
                 }
-                return name.replaceAll("\\\\", "\\.");
+                return name.replace('\\', '.');
             }
         });
     }

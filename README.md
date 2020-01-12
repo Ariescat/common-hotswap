@@ -8,12 +8,14 @@
 
   具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
 
-* todo 
-  
-  agent包源码：[ariescat-hotswap-agent](https://github.com/Ariescat/ariescat-hotswap-agent)
+* `agentmain`（`//todo`）
   
     * 基于`agentmain`的函数体级别更热
     * 基于`agentmain`的匿名内部类新增
+  
+  agent包源码：[ariescat-hotswap-agent](https://github.com/Ariescat/ariescat-hotswap-agent)
+  
+  此热更新方案采用启用后更新。即服务器在运行中如果出现bug，采用pid绑定的方式更新，此更新方案只允许更新方法体内的代码。比如一个类某个方法有bug，在方法体内修改完之后可以热更，但是如果新的类中添加了新的字段，新的方法或者父类发生变化了，是不行的。不过大部我们的bug都是方法内的逻辑bug，使用此方案还是可以的。 
   
 * 以上三点应该可以满足大部分生产环境上的bug修复。
 
