@@ -6,6 +6,8 @@ import com.sun.tools.attach.VirtualMachine;
 import java.lang.management.ManagementFactory;
 
 /**
+ * -javaagent:libs\\hotswap-agent-1.0.jar 以 premain 方式启动
+ *
  * @author Ariescat
  * @version 2020/1/11 23:39
  */
@@ -38,7 +40,8 @@ public class TestInstrumentRedefineClass {
 
                     System.out.println("loadAgent...");
 
-                    //VirtualMachine是jdk中tool.jar里面的东西，所以要在pom.xml引用这个jar
+                    // 以 agentmain 方式启动
+                    // VirtualMachine是jdk中tool.jar里面的东西，所以要在pom.xml引用这个jar
                     VirtualMachine vm = VirtualMachine.attach(pid);
                     // 这个路径是相对于被热更的服务的，也就是这个pid的服务，也可以使用绝对路径。
                     vm.loadAgent("libs\\hotswap-agent-1.0.jar");
