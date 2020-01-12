@@ -8,6 +8,17 @@ public class Person implements IHello {
     private String name;
 
     public Person() {
+//        TODO 如果在脚本里开启循环线程，热更的话会得不到释放，可能会导致内存溢出。
+//        new Thread(()->{
+//            while (true) {
+//                System.err.println("Person xxx1");
+//                try {
+//                    Thread.sleep(4000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
     }
 
     public Person(String name) {

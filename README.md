@@ -8,6 +8,8 @@
 
   具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
 
+  ！！！后来测试发现如果在脚本里开启循环线程，热更的话之前的线程会得不到释放，可能会导致内存溢出。
+
 * `agentmain`（`//todo`）
   
     * 基于`agentmain`的函数体级别更热
