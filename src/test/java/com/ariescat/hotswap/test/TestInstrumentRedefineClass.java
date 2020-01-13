@@ -6,7 +6,7 @@ import com.sun.tools.attach.VirtualMachine;
 import java.lang.management.ManagementFactory;
 
 /**
- * -javaagent:libs\\hotswap-agent-1.0.jar ÒÔ premain ·½Ê½Æô¶¯
+ * -javaagent:libs\\hotswap-agent-1.0.jar ä»¥ premain æ–¹å¼å¯åŠ¨
  *
  * @author Ariescat
  * @version 2020/1/11 23:39
@@ -15,15 +15,15 @@ public class TestInstrumentRedefineClass {
 
     public static void main(String[] args) {
         String name = ManagementFactory.getRuntimeMXBean().getName();
-        //ÕâÀïÎªÁË·½±ã²âÊÔ£¬´òÓ¡³öÀ´½ø³Ìid
+        //è¿™é‡Œä¸ºäº†æ–¹ä¾¿æµ‹è¯•ï¼Œæ‰“å°å‡ºæ¥è¿›ç¨‹id
         String pid = name.split("@")[0];
-        System.out.println("½ø³ÌId£º" + pid);
+        System.out.println("è¿›ç¨‹Idï¼š" + pid);
 
         new Thread(() -> {
             RedefineBean bean = new RedefineBean();
             while (true) {
                 try {
-                    //ÈÈ¸üĞÂÖ´ĞĞÖ®ºó£¬ÔÙ´ÎÊ¹ÓÃÕâ¸öÀà
+                    //çƒ­æ›´æ–°æ‰§è¡Œä¹‹åï¼Œå†æ¬¡ä½¿ç”¨è¿™ä¸ªç±»
                     bean.print();
 
                     Thread.sleep(2500);
@@ -40,10 +40,10 @@ public class TestInstrumentRedefineClass {
 
                     System.out.println("loadAgent...");
 
-                    // ÒÔ agentmain ·½Ê½Æô¶¯
-                    // VirtualMachineÊÇjdkÖĞtool.jarÀïÃæµÄ¶«Î÷£¬ËùÒÔÒªÔÚpom.xmlÒıÓÃÕâ¸öjar
+                    // ä»¥ agentmain æ–¹å¼å¯åŠ¨
+                    // VirtualMachineæ˜¯jdkä¸­tool.jaré‡Œé¢çš„ä¸œè¥¿ï¼Œæ‰€ä»¥è¦åœ¨pom.xmlå¼•ç”¨è¿™ä¸ªjar
                     VirtualMachine vm = VirtualMachine.attach(pid);
-                    // Õâ¸öÂ·¾¶ÊÇÏà¶ÔÓÚ±»ÈÈ¸üµÄ·şÎñµÄ£¬Ò²¾ÍÊÇÕâ¸öpidµÄ·şÎñ£¬Ò²¿ÉÒÔÊ¹ÓÃ¾ø¶ÔÂ·¾¶¡£
+                    // è¿™ä¸ªè·¯å¾„æ˜¯ç›¸å¯¹äºè¢«çƒ­æ›´çš„æœåŠ¡çš„ï¼Œä¹Ÿå°±æ˜¯è¿™ä¸ªpidçš„æœåŠ¡ï¼Œä¹Ÿå¯ä»¥ä½¿ç”¨ç»å¯¹è·¯å¾„ã€‚
                     vm.loadAgent("libs\\hotswap-agent-1.0.jar");
                 } catch (Exception e) {
                     e.printStackTrace();
