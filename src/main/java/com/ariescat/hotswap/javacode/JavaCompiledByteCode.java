@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.net.URI;
 
 /**
- * ×Ô¶¨ÒåÒ»¸ö±àÒëÖ®ºóµÄ×Ö½ÚÂë¶ÔÏó
+ * è‡ªå®šä¹‰ä¸€ä¸ªç¼–è¯‘ä¹‹åçš„å­—èŠ‚ç å¯¹è±¡
  *
  * @author Ariescat
  * @version 2020/1/10 20:34
@@ -14,7 +14,7 @@ import java.net.URI;
 public class JavaCompiledByteCode extends SimpleJavaFileObject {
 
     /**
-     * ±àÒëºóµÄ×Ö½ÚÁ÷
+     * ç¼–è¯‘åçš„å­—èŠ‚æµ
      */
     private ByteArrayOutputStream compiledBytecode;
 
@@ -31,7 +31,7 @@ public class JavaCompiledByteCode extends SimpleJavaFileObject {
     }
 
     /**
-     * »ñÈ¡±àÒë³É¹¦µÄ×Ö½ÚÂëbyte[]
+     * è·å–ç¼–è¯‘æˆåŠŸçš„å­—èŠ‚ç byte[]
      */
     public byte[] getByteCode() {
         return compiledBytecode.toByteArray();

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.URI;
 
 /**
- * ×Ô¶¨ÒåÒ»¸öJavaÔ´
+ * è‡ªå®šä¹‰ä¸€ä¸ªJavaæº
  *
  * @author Ariescat
  * @version 2020/1/11 16:46
@@ -19,14 +19,14 @@ import java.net.URI;
 public class JavaSource extends SimpleJavaFileObject {
 
     /**
-     * ÎÄ¼şÔ´
+     * æ–‡ä»¶æº
      */
     private Source source;
 
     /**
      * Instantiates a new java file object impl.
      *
-     * @param source ÎÄ¼şÔ´
+     * @param source æ–‡ä»¶æº
      */
     private JavaSource(Source source) {
         super(URI.create(source.suggestedClassName().replaceAll("\\.", "/") + Kind.SOURCE.extension), Kind.SOURCE);
@@ -103,7 +103,7 @@ public class JavaSource extends SimpleJavaFileObject {
             @Override
             public String suggestedClassName() {
                 String name = javaFile.getPath();
-                // TODO ÕâÀïÎªÁË²âÊÔĞ´ËÀcom£¬È»¶ø²¢²»Í¨ÓÃ£¡
+                // TODO è¿™é‡Œä¸ºäº†æµ‹è¯•å†™æ­»comï¼Œç„¶è€Œå¹¶ä¸é€šç”¨ï¼
                 int start = name.indexOf("com");
                 if (start != -1) {
                     int end = name.lastIndexOf('.');
