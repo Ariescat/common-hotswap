@@ -59,7 +59,7 @@
 
   * `Github` [HotswapAgent](https://github.com/HotswapProjects/HotswapAgent)
 
-    该工程基于`dcevm`，需要给`jvm`打上补丁（也就是要修改原生的`jvm`），该做法存在风险（自己团队没有在生产环境上跑过这种补丁，是否会存在未知风险？）
+    该工程基于`dcevm`，需要给`jvm`打上补丁（也就是要修改原生的`jvm`），该做法存在风险（自己团队没有在生产环境上跑过这种补丁，是否会存在未知风险？），同时没有对最新的JDK进行支持（目前最新补丁支持到 `Java 8u181 build 2`）。
 
   * 阿里`arthas`
 
