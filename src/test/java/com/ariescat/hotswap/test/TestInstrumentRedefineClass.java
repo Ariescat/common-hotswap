@@ -6,7 +6,7 @@ import com.sun.tools.attach.VirtualMachine;
 import java.lang.management.ManagementFactory;
 
 /**
- * -javaagent:libs\\hotswap-agent-1.0.jar 以 premain 方式启动
+ * -javaagent:libs\\hotswap-agent-1.1.jar 以 premain 方式启动
  *
  * @author Ariescat
  * @version 2020/1/11 23:39

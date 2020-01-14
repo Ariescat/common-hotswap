@@ -2,24 +2,64 @@
 
 #### 本工程提供的方案
 
-* `JDK`动态编译，并整合进`Spring`架构，用户无需关注具体实现方式
+* 动态加载`Class`和`Jar`
 
-  用法：把自己的热点代码写进一个单独的非`source folders`的文件夹（本工程是`script`），然后用`maven`的`maven-resourczes-plugin`把该文件夹当成`resources`编译进运行目录。
+  - 基于`Instrumentation`的函数体级别更热
 
-  具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
+    此更新方案只允许更新方法体内的代码。比如一个类某个方法有bug，在方法体内修改完之后可以热更，但是如果新的类中添加了新的字段，新的方法或者父类发生变化了，是不行的。不过大部我们的bug都是方法内的逻辑bug，使用此方案还是可以的。 
 
-  ！！！后来测试发现如果在脚本里开启循环线程，热更的话之前的线程会得不到释放，可能会导致内存溢出。
+  - 基于`Instrumentation`的`Jar`动态加载
 
-* `agentmain`（`//todo`）
+    此更新方案允许新增Class。比如某个方法需要增加一个排序比较器`Comparator`，或者做代理转发（把原方法的调用转发到新的Class方法调用上），等等。。
+
+  agent包：
+
+  ​		源码：[ariescat-hotswap-agent](https://github.com/Ariescat/ariescat-hotswap-agent)
+
+  ​		`Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
+
+  ​		`premain`方式启动：需要加上启动参数`-javaagent:libs\\hotswap-agent-1.1.jar`
+
+  ​		`agentmain`方式启动：采用`pid`绑定进行`attach`获取`VirtualMachine`，由`VirtualMachine`来`loadAgent`。
+
+  核心实现：
+
+  ​		`com.ariescat.hotswap.instrument.ClassesHotLoadWatch`
+
   
-    * 基于`agentmain`的函数体级别更热
-    * 基于`agentmain`的匿名内部类新增
+
+* **动态编译脚本**，可随意更改类结构进行热更改
+
+  采用`JDK`动态编译，并整合进`Spring`架构，用户无需关注具体实现方式
+
+  用法：
+
+  ​		把自己的热点代码写进一个单独的非`source folders`的文件夹（本工程是`script`），然后用`maven`的`maven-resourczes-plugin`把该文件夹当成`resources`编译进运行目录。
+
+  测试：
+
+  ​		具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
+
+  **注意事项**：
+
+  ​		经测试发现如果在脚本里开启**循环**线程，热更的话之前的线程会得不到释放，可能会导致内存溢出。因此尽量不要在脚本里开启**循环**线程：
+
+  ```java
+  public class Person implements IHello {
+      public Person() {
+  //        TODO 如果在脚本里开启循环线程，热更的话会得不到释放，可能会导致内存溢出。
+  //        new Thread(()->{
+  //            while (true) {
+  //                System.err.println("Person xxx1");
+  //            }
+  //        }).start();
+      }
+  }
+  ```
+
   
-  agent包源码：[ariescat-hotswap-agent](https://github.com/Ariescat/ariescat-hotswap-agent)
-  
-  此热更新方案采用启用后更新。即服务器在运行中如果出现bug，采用pid绑定的方式更新，此更新方案只允许更新方法体内的代码。比如一个类某个方法有bug，在方法体内修改完之后可以热更，但是如果新的类中添加了新的字段，新的方法或者父类发生变化了，是不行的。不过大部我们的bug都是方法内的逻辑bug，使用此方案还是可以的。 
-  
-* 以上三点应该可以满足大部分生产环境上的bug修复。
+
+* 以上两种方案应该可以满足大部分生产环境上的bug修复。
 
   
 
@@ -59,7 +99,7 @@
 
   * `Github` [HotswapAgent](https://github.com/HotswapProjects/HotswapAgent)
 
-    该工程基于`dcevm`，需要给`jvm`打上补丁（也就是要修改原生的`jvm`），该做法存在风险（自己团队没有在生产环境上跑过这种补丁，是否会存在未知风险？），同时没有对最新的JDK进行支持（目前最新补丁支持到 `Java 8u181 build 2`）。
+    该工程基于`dcevm`，需要给`jvm`打上补丁（也就是要修改原生的`jvm`），该做法存在风险（自己团队没有在生产环境上跑过这种补丁，是否会存在未知风险？），同时没有对最新的`JDK`进行支持（目前最新补丁支持到 `Java 8u181 build 2`）。
 
   * 阿里`arthas`
 
