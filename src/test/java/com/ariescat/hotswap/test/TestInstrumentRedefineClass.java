@@ -44,7 +44,7 @@ public class TestInstrumentRedefineClass {
                     // VirtualMachine是jdk中tool.jar里面的东西，所以要在pom.xml引用这个jar
                     VirtualMachine vm = VirtualMachine.attach(pid);
                     // 这个路径是相对于被热更的服务的，也就是这个pid的服务，也可以使用绝对路径。
-                    vm.loadAgent("libs\\hotswap-agent-1.0.jar");
+                    vm.loadAgent("libs\\hotswap-agent-1.1.jar");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
