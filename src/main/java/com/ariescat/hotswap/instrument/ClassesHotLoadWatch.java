@@ -18,6 +18,8 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,13 +57,21 @@ public class ClassesHotLoadWatch {
 
     public static void start(String agentJarPath, String watchPath, int refreshCheckDelay) throws Exception {
         Path libPath = Paths.get(agentJarPath);
-        if (!Files.exists(libPath)) {
-            log.error("无法启动热加载监听，错误的libPath:[{}]", libPath.toAbsolutePath());
-            return;
+        Optional<Path> jarPath = findJar(libPath);
+
+        if (!jarPath.isPresent()) {
+            // 寻找备用的 agent lib包
+            try {
+                URL resource = ClassesHotLoadWatch.class.getResource("");
+                log.error("在libPath[{}]下无法找到[{}xx.jar]，开始寻找备用路径[{}]", libPath.toAbsolutePath(), AGENT_JAR_NAME, resource);
+
+                jarPath = findJar(Paths.get(resource.toURI()));
+            } catch (URISyntaxException e) {
+                log.error("", e);
+                return;
+            }
         }
-        Optional<Path> jarPath = Files.find(libPath, 1, (path, basicFileAttributes) -> {
-            return path.getFileName().toString().startsWith(AGENT_JAR_NAME);
-        }).findAny();
+
         if (!jarPath.isPresent()) {
             log.error("无法启动热加载监听，在libPath[{}]下无法找到[{}xx.jar]", libPath.toAbsolutePath(), AGENT_JAR_NAME);
             return;
@@ -71,6 +81,16 @@ public class ClassesHotLoadWatch {
 
         ClassesHotLoadWatch hotLoadWatch = new ClassesHotLoadWatch(agentJar.toAbsolutePath().toString());
         hotLoadWatch.startWatch(watchPath, refreshCheckDelay);
+    }
+
+    private static Optional<Path> findJar(Path libPath) throws IOException {
+        if (!Files.exists(libPath)) {
+            log.error("不存在的libPath:[{}]", libPath.toAbsolutePath());
+            return Optional.empty();
+        }
+        return Files.find(libPath, 1,
+                (path, basicFileAttributes) -> path.getFileName().toString().startsWith(AGENT_JAR_NAME)
+        ).findAny();
     }
 
     /**
@@ -132,7 +152,7 @@ public class ClassesHotLoadWatch {
             try {
                 monitor.stop();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("", e);
             }
         }));
     }
@@ -170,14 +190,14 @@ public class ClassesHotLoadWatch {
 //                    try {
 //                        instField.set(null, null); // help GC
 //                    } catch (Exception e) {
-//                        e.printStackTrace();
+//                        log.error("", e);
 //                    }
 //                }
                 if (vm != null) {
                     try {
                         vm.detach();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error("", e);
                     }
                 }
             }
