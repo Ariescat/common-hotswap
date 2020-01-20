@@ -79,7 +79,9 @@
     2. 不能增加类的函数或变量
     3. 函数必须能够退出，如果有函数在死循环中，无法执行更新类（笔者实验发现，死循环跳出之后，再执行类的时候，才会是更新类）
 
-  * 通过`Instrumentation#appendToSystemClassLoaderSearch`来增加一个`classpath`，可以实现新增匿名内部类。
+  * 通过`Instrumentation#appendToSystemClassLoaderSearch`来增加一个`classpath`，可以动态加载Jar包。
+
+    只要能动态加载Jar包，就能做很多事情了
 
     See：[AgentAddAnonymousInnerClass](https://github.com/Ariescat/Metis/blob/82838045ceda1d70df594f0628c1a110ac7ae2a8/agent/src/main/java/com/agent/AgentAddAnonymousInnerClass.java)
 
