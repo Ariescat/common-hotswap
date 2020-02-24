@@ -123,3 +123,11 @@
       5. 线上遇到某个用户的数据处理有问题，但线上同样无法 `debug`，线下无法重现。
       6. 是否有一个全局视角来查看系统的运行状况？
       7. 有什么办法可以监控到`JVM`的实时运行状态？
+
+
+
+#### 参考
+
+* [youxijishu/game-hot-update](https://github.com/youxijishu/game-hot-update)
+* [HotswapProjects/HotswapAgent](https://github.com/HotswapProjects/HotswapAgent)
+* [HotswapProjects/HotswapAgentExamples](https://github.com/HotswapProjects/HotswapAgentExamples)
