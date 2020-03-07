@@ -14,7 +14,7 @@
 
   agent包：
 
-  ​		源码：[ariescat-hotswap-agent](https://github.com/Ariescat/ariescat-hotswap-agent)
+  ​		源码：[ariescat-hotswap-agent](https://github.com/Ariescat/common-hotswap-agent)
 
   ​		`Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
 
@@ -83,7 +83,7 @@
 
     只要能动态加载Jar包，就能做很多事情了
 
-    See：[AgentAddAnonymousInnerClass](https://github.com/Ariescat/Metis/blob/82838045ceda1d70df594f0628c1a110ac7ae2a8/agent/src/main/java/com/agent/AgentAddAnonymousInnerClass.java)
+    See：[AgentAddAnonymousInnerClass](https://github.com/Ariescat/study-metis/blob/82838045ceda1d70df594f0628c1a110ac7ae2a8/agent/src/main/java/com/agent/AgentAddAnonymousInnerClass.java)
 
   * 定义不同的`classloader`
 
