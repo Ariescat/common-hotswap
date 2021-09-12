@@ -5,9 +5,7 @@ import org.springframework.scripting.ScriptSource;
 import sun.misc.IOUtils;
 
 import javax.tools.SimpleJavaFileObject;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 
 /**
@@ -102,18 +100,34 @@ public class JavaSource extends SimpleJavaFileObject {
 
             @Override
             public String suggestedClassName() {
-                String name = javaFile.getAbsolutePath().substring(System.getProperty("user.dir").length());
-                // TODO 这里为了测试写死com，然而并不通用！可以考虑读取javaFile的第一行解析package？
-                int start = name.indexOf("com/");
-                if (start != -1) {
-                    int end = name.lastIndexOf('.');
-                    if (end != -1) {
-                        name = name.substring(start, end);
-                    } else {
-                        name = name.substring(start);
+                String className = null;
+                try (BufferedReader reader = new BufferedReader(new FileReader(javaFile), 20)) {
+                    String packageName = reader.readLine();
+                    while (packageName != null) {
+                        if (packageName.startsWith("package")) {
+                            packageName = packageName.substring(8, packageName.length() - 1); // 7 + 1个空格, 去掉最后的;号
+                            String fileName = javaFile.getName();
+                            className = packageName + "." + fileName.substring(0, fileName.length() - 5);
+                            break;
+                        }
+                        packageName = reader.readLine();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                return name.replaceAll(File.separator, "\\.");
+                return className;
+//                // 这里为了测试写死com，然而并不通用！
+//                String name = javaFile.getAbsolutePath().substring(System.getProperty("user.dir").length());
+//                int start = name.indexOf("com/");
+//                if (start != -1) {
+//                    int end = name.lastIndexOf('.');
+//                    if (end != -1) {
+//                        name = name.substring(start, end);
+//                    } else {
+//                        name = name.substring(start);
+//                    }
+//                }
+//                return name.replaceAll(File.separator, "\\.");
             }
         });
     }
