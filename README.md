@@ -20,17 +20,17 @@
 
   源码：ariescat-hotswap-agent
 
-​		`Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
+  `Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
 
-​		`premain`方式启动：需要加上启动参数`-javaagent:libs\\hotswap-agent-1.1.jar`
+  `premain`方式启动：需要加上启动参数`-javaagent:libs\\hotswap-agent-1.1.jar`
 
-​		`agentmain`方式启动：采用`pid`绑定进行`attach`获取`VirtualMachine`，由`VirtualMachine`来`loadAgent`。
+  `agentmain`方式启动：采用`pid`绑定进行`attach`获取`VirtualMachine`，由`VirtualMachine`来`loadAgent`。
 
-​		核心实现：`com.ariescat.hotswap.instrument.ClassesHotLoadWatch`
+  核心实现：`com.ariescat.hotswap.instrument.ClassesHotLoadWatch`
 
-​		测试代码：`com.ariescat.hotswap.example.instrument.TestClassesHotLoadWatch`
+  测试代码：`com.ariescat.hotswap.example.instrument.TestClassesHotLoadWatch`
 
-​		
+
 
 * **动态编译脚本**，可随意更改类结构进行热更改
 
@@ -44,7 +44,7 @@
 
   **注意事项**：
 
-  ​		经测试发现如果在脚本里开启**循环**线程，热更的话之前的线程会得不到释放，可能会导致内存溢出。因此尽量不要在脚本里开启**循环**线程：
+  经测试发现如果在脚本里开启**循环**线程，热更的话之前的线程会得不到释放，可能会导致内存溢出。因此尽量不要在脚本里开启**循环**线程：
 
   ```java
   public class Person implements IHello {
