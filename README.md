@@ -2,6 +2,10 @@
 
 #### 本工程提供的方案
 
+核心代码：common-hotswap-core
+
+有以下两种方案：
+
 * 动态加载`Class`和`Jar`
 
   - 基于`Instrumentation`的函数体级别更热
@@ -14,19 +18,19 @@
 
   agent包：
 
-  ​		源码：[ariescat-hotswap-agent](https://github.com/Ariescat/common-hotswap-agent)
+  源码：ariescat-hotswap-agent
 
-  ​		`Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
+​		`Instrumentation`实例的获取需要从`agent`代理程序上获取，上面的`agent`包同时支持`premain`方式和`agentmain`方式。
 
-  ​		`premain`方式启动：需要加上启动参数`-javaagent:libs\\hotswap-agent-1.1.jar`
+​		`premain`方式启动：需要加上启动参数`-javaagent:libs\\hotswap-agent-1.1.jar`
 
-  ​		`agentmain`方式启动：采用`pid`绑定进行`attach`获取`VirtualMachine`，由`VirtualMachine`来`loadAgent`。
+​		`agentmain`方式启动：采用`pid`绑定进行`attach`获取`VirtualMachine`，由`VirtualMachine`来`loadAgent`。
 
-  核心实现：
+​		核心实现：`com.ariescat.hotswap.instrument.ClassesHotLoadWatch`
 
-  ​		`com.ariescat.hotswap.instrument.ClassesHotLoadWatch`
+​		测试代码：`com.ariescat.hotswap.example.instrument.TestClassesHotLoadWatch`
 
-  
+​		
 
 * **动态编译脚本**，可随意更改类结构进行热更改
 
@@ -34,11 +38,9 @@
 
   用法：
 
-  ​		把自己的热点代码写进一个单独的非`source folders`的文件夹（本工程是`script`），然后用`maven`的`maven-resourczes-plugin`把该文件夹当成`resources`编译进运行目录。
+  把自己的热点代码写进一个单独的非`source folders`的文件夹（本工程是`script`），然后用`maven`的`maven-resourczes-plugin`把该文件夹当成`resources`编译进运行目录。
 
-  测试：
-
-  ​		具体看这个测试代码吧`com.ariescat.hotswap.example.javacode.TestSpringInject`
+  测试代码：`com.ariescat.hotswap.example.javacode.TestSpringInject`
 
   **注意事项**：
 
@@ -105,7 +107,7 @@
 
   * 阿里`arthas`
 
-     使用`Arthas`三个命令就可以搞定热更新 ：
+    使用`Arthas`三个命令就可以搞定热更新 ：
 
     ```shell
     jad --source-only com.example.demo.arthas.user.UserController > /tmp/UserController.java
