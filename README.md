@@ -38,7 +38,7 @@
 
   测试：
 
-  ​		具体看这个测试代码吧`com.ariescat.hotswap.test.TestSpringInject`
+  ​		具体看这个测试代码吧`com.ariescat.hotswap.example.javacode.TestSpringInject`
 
   **注意事项**：
 
