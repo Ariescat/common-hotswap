@@ -1,8 +1,8 @@
 package com.ariescat.hotswap.javacode;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.scripting.ScriptSource;
-import sun.misc.IOUtils;
 
 import javax.tools.SimpleJavaFileObject;
 import java.io.*;
@@ -88,7 +88,7 @@ public class JavaSource extends SimpleJavaFileObject {
             @Override
             public String getScriptAsString() throws IOException {
                 try (FileInputStream fileInputStream = new FileInputStream(javaFile)) {
-                    byte[] bytes = IOUtils.readFully(fileInputStream, -1, false);
+                    byte[] bytes = IOUtils.readFully(fileInputStream, fileInputStream.available());
                     return new String(bytes);
                 }
             }
