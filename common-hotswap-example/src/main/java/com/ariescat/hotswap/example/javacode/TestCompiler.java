@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 
-
 /**
  * CustomStringJavaCompiler
  *
@@ -19,6 +18,14 @@ public class TestCompiler {
             // Working directory 更改为%MODULE_WORKING_DIR%
             String personPath = StringUtils.join(new String[]{"src", "main", "script", "com", "ariescat", "hotswap", "example", "bean", "Person.java"}, File.separator);
             File file = new File(System.getProperty("user.dir") + File.separator + personPath);
+            if (!file.exists()) {
+                file = new File(System.getProperty("user.dir") + File.separator + "common-hotswap-example" + File.separator + personPath);
+            }
+            if (!file.exists()) {
+                System.err.println("!file.exists()");
+                return;
+            }
+
             long lastModified = 0;
             IHello hello = null;
 
@@ -26,6 +33,7 @@ public class TestCompiler {
             while (true) {
                 try {
 
+                    // 运行后，可以尝试修改[源码包下]的Person.java
                     if (lastModified != file.lastModified()) {
                         Class<?> clazz = classLoader.parseClass(file);
                         hello = (IHello) clazz.newInstance();
@@ -43,7 +51,6 @@ public class TestCompiler {
                     e.printStackTrace();
                 }
             }
-        }
-        ).start();
+        }).start();
     }
 }

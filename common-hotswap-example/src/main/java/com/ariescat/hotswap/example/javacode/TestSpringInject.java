@@ -15,7 +15,7 @@ public class TestSpringInject {
             while (true) {
                 try {
                     // IHello 和 IEat 的具体实现类在 script/目录下, 这个目录开发的时候设置为源码包，发布的时候单独出来
-                    // 可以直接修改script/目录下的类
+                    // 调试时：可以直接修改[target包下]script/目录下的类
                     IHello bean = context.getBean(IHello.class);
                     bean.sayHello();
                     IEat eat = context.getBean(IEat.class);
