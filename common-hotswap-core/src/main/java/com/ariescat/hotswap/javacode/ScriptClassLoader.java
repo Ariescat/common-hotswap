@@ -27,6 +27,8 @@ public class ScriptClassLoader extends ClassLoader {
 
     /**
      * this cache contains the loaded classes or PARSING, if the class is currently parsed
+     * <p>
+     * 一个class可能有多个内部类
      */
     private final Map<String, JavaFileObject> classes = new ConcurrentHashMap<>();
 
@@ -88,7 +90,7 @@ public class ScriptClassLoader extends ClassLoader {
         InnerLoader loader = AccessController.doPrivileged(
                 (PrivilegedAction<InnerLoader>) () -> new InnerLoader(ScriptClassLoader.this)
         );
-        CompilationUnit unit = new CompilationUnit(loader, new ClassCollector(loader));
+        CompilationUnit unit = new CompilationUnit(loader, new LoadClassExec(loader));
         return unit.doCompile(javaSource);
     }
 
@@ -131,10 +133,10 @@ public class ScriptClassLoader extends ClassLoader {
         }
     }
 
-    static class ClassCollector implements CompilationUnit.ClassgenCallback {
+    static class LoadClassExec implements CompilationUnit.ClassgenCallback {
         private final ScriptClassLoader cl;
 
-        ClassCollector(ScriptClassLoader cl) {
+        LoadClassExec(ScriptClassLoader cl) {
             this.cl = cl;
         }
 
