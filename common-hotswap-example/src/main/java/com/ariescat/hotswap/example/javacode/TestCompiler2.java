@@ -11,7 +11,7 @@ import java.io.File;
  * @author Ariescat
  * @version 2020/1/10 17:20
  */
-public class TestCompiler {
+public class TestCompiler2 {
 
     public static void main(String[] args) {
         new Thread(() -> {
