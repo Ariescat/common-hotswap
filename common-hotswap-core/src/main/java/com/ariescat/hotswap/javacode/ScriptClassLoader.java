@@ -30,12 +30,16 @@ public class ScriptClassLoader extends ClassLoader {
      */
     private final Map<String, JavaFileObject> classes = new ConcurrentHashMap<>();
 
+    public ScriptClassLoader() {
+        super();
+    }
+
     /**
      * Instantiates a new class loader impl.
      *
      * @param parentClassLoader the parent class loader
      */
-    public ScriptClassLoader(final ClassLoader parentClassLoader) {
+    public ScriptClassLoader(ClassLoader parentClassLoader) {
         super(parentClassLoader);
     }
 
@@ -45,7 +49,7 @@ public class ScriptClassLoader extends ClassLoader {
      * @param qualifiedClassName the qualified class name
      * @param javaFile           the java file
      */
-    void add(final String qualifiedClassName, final JavaFileObject javaFile) {
+    void add(String qualifiedClassName, JavaFileObject javaFile) {
         classes.put(qualifiedClassName, javaFile);
     }
 
@@ -64,7 +68,7 @@ public class ScriptClassLoader extends ClassLoader {
      * @param qualifiedClassName the qualified class name
      * @return the byte[]
      */
-    private byte[] loadClassBytes(final String qualifiedClassName) {
+    private byte[] loadClassBytes(String qualifiedClassName) {
         JavaFileObject file = classes.get(qualifiedClassName);
         if (file != null) {
             return ((JavaCompiledByteCode) file).getByteCode();
@@ -89,7 +93,7 @@ public class ScriptClassLoader extends ClassLoader {
     }
 
     @Override
-    protected Class<?> findClass(final String qualifiedClassName) throws ClassNotFoundException {
+    protected Class<?> findClass(String qualifiedClassName) throws ClassNotFoundException {
         byte[] bytes = loadClassBytes(qualifiedClassName);
         if (bytes != null) {
             return defineClass(qualifiedClassName, bytes, 0, bytes.length);
@@ -102,13 +106,13 @@ public class ScriptClassLoader extends ClassLoader {
     }
 
     @Override
-    protected synchronized Class<?> loadClass(final String name, final boolean resolve)
+    protected synchronized Class<?> loadClass(String name, boolean resolve)
             throws ClassNotFoundException {
         return super.loadClass(name, resolve);
     }
 
     @Override
-    public InputStream getResourceAsStream(final String name) {
+    public InputStream getResourceAsStream(String name) {
         if (name.endsWith(JavaFileObject.Kind.CLASS.extension)) {
             String qualifiedClassName =
                     name.substring(0, name.length() - JavaFileObject.Kind.CLASS.extension.length())

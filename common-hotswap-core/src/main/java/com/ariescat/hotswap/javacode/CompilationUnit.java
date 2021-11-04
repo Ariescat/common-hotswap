@@ -164,6 +164,7 @@ public class CompilationUnit {
         public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject outputFile) throws IOException {
             if (kind == JavaFileObject.Kind.CLASS) {
                 JavaCompiledByteCode object = new JavaCompiledByteCode(URI.create(className + Kind.CLASS.extension), Kind.CLASS);
+                // 这里是InnerLoader
                 classLoader.add(className, object);
                 return object;
             } else {
