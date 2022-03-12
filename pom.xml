@@ -12,6 +12,7 @@
         <module>common-hotswap-core</module>
         <module>common-hotswap-agent</module>
         <module>common-hotswap-example</module>
+        <!--<module>common-test</module>-->
     </modules>
 
     <properties>
